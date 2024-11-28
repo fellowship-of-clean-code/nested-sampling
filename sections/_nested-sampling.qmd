@@ -1,0 +1,433 @@
+## Nested sampling {#sec-nested-sampling}
+
+Nested sampling, introduced by Skilling in 2006 [@skillingNestedSamplingGeneral2006], is an algorithm designed to compute the _evidence_ $\mathcal{Z}$ as well as the posterior distribution on the parameters. 
+
+The evidence is computed through the integral
+
+$$ \mathcal{Z}(d|M) = \int \mathcal{L}(d | \theta, M) \pi (\theta | M) \text{d}^n\theta \,.
+$$
+
+This integral is in $n$ dimensions (where $n$ is the dimensionality of the parameter space) and therefore difficult to work with. The idea in nested sampling is to rewrite it in terms of the auxiliary variable $X$ (employing the notation of @siviaDataAnalysisBayesian2006), defined as the prior volume contained within a likelihood constraint $\mathcal{L} \geq L$:
+
+$$ X (L) = \int_{\mathcal{L}(d | \theta, M) \geq L} \pi (\theta | M) \text{d}^n\theta\,.
+$$
+
+Since the prior is a normalized probability distribution and the likelihood ranges from 0 to $L _{\text{max}}$, this variable will range from $X(0) = 1$ to $X(L _{\text{max}}) = 0$, and it will always be decreasing.[^1]
+We can define its inverse, $L(X)$, 
+and rewrite the likelihood integral through integration by parts: the evidence is the expectation value of the likelihood, therefore 
+$$
+\mathcal{Z}(d|M) = \int_{0}^{L_\text{max}} X(L) \text{d}L 
+= X L |_{L=0}^{L=L_\text{max}} - \int_{X(L=0)}^{X(L=L_\text{max})} L(X)\text{d}X = \int_{0}^{1}L(X)\text{d}X\,.
+$$ {#eq-evidence-integral}
+
+For a detailed discussion of the mathematical details, also see [@ashtonNestedSamplingPhysical2022].
+
+### Prior compression {#sec-prior-compression}
+
+Note that, by definition, $X$ is directly related to probability mass: the prior probability of an interval $[X_{0}, X_{1}]$, i.e. the prior mass which has likelihood values $L(X_{0}) < \mathcal{L} < L(X_{1})$, is 
+
+$$
+p([X_{0}, X_{1}]) = \int _{L(X_{0}) < \mathcal{L}(d|\theta, M) < L(X_{1})} \pi (\theta | M) \text{d}^{n} \theta = X_{1} - X_{0}\,,
+$$
+
+where we computed the integral on a likelihood "ring" by subtracting the inside volume from the outside one.
+This is useful to us, since it means that if we distribute points uniformly according to the prior their $X$ values will also be uniformly distributed in $[0, 1]$.
+
+If $k$ points are uniformly distributed in an interval $[0, X^*]$, then the largest of them will have a $X$ coordinate distributed as $X _\text{max} / X^* \equiv t \sim \text{beta}(k, 1) = k t^{k-1}$,[^2] where we defined the _compression ratio_ $t$: when we discard the lowest-likelihood point with $X _\text{max}$, we will have contracted the prior volume by a factor $t$.
+In terms of $\log t$, the distribution reads 
+$$
+\frac{\text{d}p}{\text{d}\log t} = t\frac{\text{d}p}{\text{d}t} = k t^{k} = k e^{k \log t}
+$$
+
+This distribution is shown in @fig-nested-sampling-volume-compression-distribution.
+
+```{python}
+#| label: fig-nested-sampling-volume-compression-distribution
+#| fig-cap: "Volume compression"
+
+from matplotlib.ticker import FixedLocator, FixedFormatter
+import numpy as np
+import matplotlib.pyplot as plt
+
+n = 1
+log_t = np.linspace(-3/n, 0)
+p_of_log_t = n * np.exp( n * log_t)
+
+plt.plot(log_t, p_of_log_t / n)
+_ = plt.xlabel('$\log t$')
+_ = plt.ylabel(r'$\mathrm{d}p / \mathrm{d} \log t$')
+
+plt.xlim(-3/n, 0)
+plt.ylim(0, n)
+
+plt.gca().xaxis.set_major_locator(FixedLocator([-3/n, -2/n, -1/n, 0]))
+plt.gca().xaxis.set_major_formatter(FixedFormatter([
+	'$-3/n$', 
+	'$-2/n$', 
+	'$-1/n$', 
+	'$0$'
+]))
+
+plt.gca().yaxis.set_major_locator(FixedLocator([0, n/4, n/2, 3*n/4, n]))
+plt.gca().yaxis.set_major_formatter(FixedFormatter([
+	'$0$', 
+	'$n/4$', 
+	'$n/2$', 
+	'$3n/4$', 
+	'$n$'
+]))
+```
+
+Its mean and standard deviation are: 
+$$
+\begin{aligned}
+\langle \log t \rangle &= \int_{-\infty}^{0} \log t \frac{\text{d}p}{\text{d}\log t} \text{d}\log t  \\
+&= \int_{-\infty}^{0} \frac{x}{k} k e^{x} \frac{ \text{d}x}{k}  \\ 
+&= \frac{1}{k} \int_{-\infty}^{0} x e^{x} \text{d}x \\
+&= - \frac{1}{k}
+\end{aligned}
+$$
+
+where $x = k \log t$, and
+$$
+\begin{aligned}
+\left\langle  (\log t)^{2}  \right\rangle - \frac{1}{k^{2}}
+&= \int_{-\infty}^{0} (\log t)^{2} \frac{\text{d}p}{\text{d}\log t} \text{d} \log t - \frac{1}{k^{2}} \\
+&= \int_{-\infty}^{0} \frac{x^{2}}{k^{2}} k e^{x} \frac{\text{d}x}{k} - \frac{1}{k^{2}}  \\
+&= \frac{1}{k^{2}} \int_{-\infty}^{0} x^{2} e^{x} \text{d}x - \frac{1}{k^{2}}  \\
+&= \frac{2-1}{k^{2}} = \frac{1}{k^{2}}\,.
+\end{aligned}
+$$
+
+Compactly, we can then write $\log t = (-1 \pm 1) / k$. 
+
+### Computing evidence and posterior
+
+If we sample $k$ points from the prior (with total volume $X_{0}$) and remove the one with the worst likelihood, the remaining prior volume will be $X_{1} = t_{1}X_{0}$, where $\log t_{1}$ has an expectation value of $-1 /k$. This will be true at every iteration, so [@skillingNestedSamplingGeneral2006, section 5]
+$$
+\log X_{i} = \sum_{j\leq i} \log t_{j} \approx -\frac{i}{k} \pm \frac{\sqrt{ i }}{k}
+$$
+
+The prior is compressed exponentially, which is desirable since the typical set for the posterior is often several orders of magnitude smaller than the prior.
+
+```{python}
+#| label: fig-nested-sampling-volume-compression-iteration
+#| fig-cap: "Volume compression by iteration. The number of live points is denoted here as $n_{\\mathrm{live}} = k$. Note how the horizontal slices are thinner when we have more live points: increasing them will decrease the uncertainty on the prior compression obtained at a fixed iteration number. After reaching a logarithmic volume compression of $- \\log X = 4$ the runs are truncated, and the remaining points are shown: these are distributed uniformly and not geometrically in $X$, therefore they taper off in this logarithmic plot."
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+rng = np.random.default_rng(seed=1)
+
+n_iterations = 80
+logX_min = -4
+
+n_live_numbers = [100, 50]
+colors = ['grey', 'black']
+
+for n_live, color in zip(n_live_numbers, colors):
+
+	results = [[] for _ in range(n_iterations)]
+
+	for i in range(n_iterations):
+		points = rng.uniform(size=n_live)
+		points = np.sort(points)
+		logX = 0
+		while logX > logX_min:
+			results[i].append(logX)
+			logX = np.log(points[-1])
+			points[-1] = rng.uniform(0, np.exp(logX))
+			points = np.sort(points)
+		results[i].extend(np.log(points[::-1]))
+
+	min_i = min(len(arr) for arr in results)
+
+	for i in range(n_iterations):
+		if i == 0:
+			label = '$n_{\mathrm{live}} =$' + f' {n_live}'
+		else:
+			label = None
+		plt.plot(
+			results[i], 
+			np.arange(len(results[i])), 
+			c=color, 
+			alpha=.2, 
+			label=label)
+
+plt.legend()
+plt.axvline(logX_min, ls='--', c='black', lw=1)
+plt.xlim(0, logX_min-6)
+plt.xlabel(r'$\log X$: prior compression')
+plt.ylabel('Iteration number')
+plt.show()
+```
+
+This allows us to construct a procedure to evaluate the integral in @eq-evidence-integral, as long as we are able to do the following:
+
+1. sample uniformly $k$ points from the prior
+2. find the lowest-likelihood point $\theta_{1}$ and discard it: now the prior volume is approximately $X_{1} = e^{-1/k}$; let us denote its likelihood as $L_{1}$
+3. sample a new point $\theta_{2}$ uniformly from the prior, constrained to $L_{2} = L(\theta_{2}) > L_{1}$
+4. repeat from point 2.
+
+We are constructing a sequence of points $\theta_{i}$ with corresponding likelihoods $L_{i}$ and approximate associated interior prior volumes $X_{i} \approx e^{-i/k}$. 
+At this stage, we still need to discuss how step 3 is performed, as well as when the iteration should stop - for now, suppose that happens at some stage $n_\text{iter}$.
+
+For the evidence, we can simply use a trapezoidal integration rule: 
+$$
+\mathcal{Z}(d|M) \approx  \sum_{i=1}^{n_\text{iter}} w_{i} L_{i} = \sum_{i=1}^{n_\text{iter}} \frac{X_{i+1} - X_{i-1}}{2} L_{i} 
+$$
+
+It can be shown that this sum converges to the correct value in the $n_\text{iter} \to \infty$ and $n _\text{live} \to \infty$ limit.
+
+These weights can also be used to estimate the posterior as follows: take the points $\theta_{i}$ and assign to each of them a weight 
+$$
+p_{i} = \frac{w_{i} L_{i}}{Z}\,.
+$$
+It is readily seen that these weights add to 1, and heuristically they are computed as one might expect, by multiplying the prior mass and likelihood value for each of the regions we have subdivided the prior volume into.
+
+Often one is be interested in a set of equally-weighted samples: these can be obtained, for example, through density estimation methods.
+
+### Commonly used plots
+
+The quantities we discussed can be tracked through a Nested Sampling run as a useful diagnostic. 
+Here we show some commonly used plots, based on a two-dimensional example run with a Gaussian covariance.
+
+The assumptions are as follows: 
+
+- our prior is a $2$-dimensional uniform distribution $\pi \sim \mathcal{U}([0,1]^2)$;
+- our likelihood is a $2$-dimensional normal distribution, with mean $\mu = [0.5, 0.5]$ and correlated covariance matrix 
+$$
+C = 3 \times 10^{-2} \begin{pmatrix}
+1 & 0.95 \\
+0.95 & 1
+\end{pmatrix}
+$$
+
+We use 400 live points, and stop iterating when the contribution to the integral from a single iteration reaches $\Delta \log Z_{i} < 0.01$.
+
+```{python}
+import numpy as np
+from dynesty import NestedSampler
+
+# from the Dynesty quickstart: 
+# https://dynesty.readthedocs.io/en/latest/quickstart.html
+ndim = 2
+
+# Define our 3-D correlated multivariate normal log-likelihood.
+std = 3e-2
+mu = 0.5 * np.ones(ndim)
+C = np.identity(ndim) * std**2
+C[C==0] = 0.95 * std**2
+Cinv = np.linalg.inv(C)
+lnorm = -0.5 * (np.log(2 * np.pi) * ndim +
+                np.log(np.linalg.det(C)))
+
+def loglike(x):
+    return -0.5 * np.dot(x-mu, np.dot(Cinv, x-mu)) + lnorm
+
+def ptform(u):
+    return u
+
+fname = data_path / 'cache' / 'plotting_example_sampler.pkl'
+
+if fname.exists():
+	sampler = NestedSampler.restore(str(fname))
+else:
+	sampler = NestedSampler(loglike, ptform, ndim, nlive=400)
+	sampler.run_nested(dlogz=0.01)
+	sampler.save(str(fname))
+```
+
+#### Run plot
+
+The first diagnostic tool is the _run plot_, where we see the accumulation of the evidence integral as a function of the prior compression $\log X$
+
+- the number of live points, which is constant up to the point where the nested sampling run is stopped: then, the remaining points are reused;
+- the likelihood $L_i$, which is strictly increasing as expected;
+- the posterior mass $w_i L_i / Z$, which increases and then decreases: first, the likelihood's increase dominates, but at some point its values start tapering, and the decrease in prior volume $w_i$ dominates;
+- the accumulation of evidence, with a corresponding error estimated as discussed in @sec-information-gain
+
+```{python}
+from dynesty import plotting as dyplot
+lnz_truth = 0
+fig, axes = dyplot.runplot(sampler.results, lnz_truth=lnz_truth)
+fig.set_size_inches(8, 12)
+```
+
+
+#### Trace plot
+
+The following plot is called a _trace plot_, which relates the evolution in prior compression to the actual values of the parameters.
+For each parameter, we get a scatter plot of its value as a function of the prior compression, and we can see its range shrink as we reach higher and higher values of the likelihood.
+
+More specifically, this plot is showing the locations of the _dead points_, i.e. the lowest-likelihood points that get discarded at each iteration.
+When one of them gets replaced it will be assigned a new likelihood in the range $[L_{i}, L_\text{max}]$, and after a certain number of iterations it will be replaced again. This is what the red lines are showing; they should be moving "randomly" across the parameter space, if we were to see them remain in a given region in the parameter space we would have an indication that our replacement algorithm is not performing properly.
+
+The points are colored by their importance weights, $w_{i}L_{i} / Z$, and to the right we see a density estimate plot for the posterior distribution of each parameter together with a 95% confidence interval.
+
+```{python}
+fig, axes = dyplot.traceplot(
+	sampler.results, 
+	truths=np.zeros(ndim),
+	truth_color='black', 
+	show_titles=False,
+	trace_cmap='inferno', 
+	connect=True,
+	connect_highlight=range(2)
+)
+fig.set_size_inches(8, 6)
+
+```
+
+#### Corner plot
+
+The _corner plot_ is a great tool to extract physical understanding about our model. 
+It shows the marginal density plot for all our parameters, as well as for each pair of parameters.
+
+```{python}
+_ = dyplot.cornerplot(
+	sampler.results, 
+	color='blue', 
+	truths=np.zeros(ndim),
+	truth_color='black', 
+	show_titles=True,
+	max_n_ticks=3, 
+	quantiles=None,
+)
+```
+
+#### Posterior predictive density plot
+
+For this example the previous example is not adequate, so we will use the problem from @sec-model-comparison.
+
+Is our model able to reproduce the data? 
+A convenient visualization to gain insight into this question is the _posterior predictive distribution_: the distribution expected of new data, conditional on our model and the data we observed.
+
+$$
+\begin{aligned}
+p(y_\text{pred} | y _\text{obs}, M) &= \int p(y_\text{pred}, \theta|y_\text{obs}, M)\text{d}\theta \\
+&= \int p(y_\text{pred}|\theta, y_\text{obs}, M) p(\theta | y_\text{obs}, M)\text{d}\theta  \\
+&= \int \underbrace{p(y_\text{pred}|\theta, M)}_{\text{model}} \underbrace{ p(\theta | y_\text{obs}, M) }_{ \text{posterior} }\text{d}\theta
+\end{aligned}
+$$
+
+We can show this in different ways; an easy one to implement is by drawing samples from the posterior and plotting the model realization corresponding to each of them. The ensemble of curves will follow the posterior predictive distribution. 
+
+```{python}
+plt.errorbar(x_i, y_i, sigma_y, **kwargs, c='black')
+plt.xlabel('$x$')
+plt.ylabel('$y$')
+
+cmap = plt.get_cmap('coolwarm')
+
+for posterior_sample in sampler_parabola.results.samples_equal()[:100]:
+	plt.plot(x_i, model(x_i, *posterior_sample), c=cmap(0.), alpha=.1)
+
+for posterior_sample in sampler_linear.results.samples_equal()[:100]:
+	plt.plot(x_i, model(x_i, 0, *posterior_sample), c=cmap(1.), alpha=.1)
+
+```
+
+### Information gain {#sec-information-gain}
+
+The typical set of the posterior is often "much smaller" than the prior: how can this be quantified?
+A useful way to do so is the relative entropy, or Kullback-Leibler divergence between posterior and prior, often also called  _information gain_ or $H$:
+
+$$ H = \text{KL}(p \parallel \pi) = \int p(\theta ) \log \left( \frac{ p( \theta )}{\pi (\theta )}\right) \text{d}\theta = \int p(X) \log p(X) \text{d}X\,.
+$$
+
+The base of the logarithms defines the unit used for the information gain:
+
+- if they are natural logarithms (base $e$) the values are in _nats_;
+- if they are base 2 logarithms, the values are in _Shannons_ or _bits_;
+- if they are base 10 logarithms, the values are in _Hartleys_ or _dex_.
+
+One way to interpret this is related to the signal-to-noise ratio [@siviaDataAnalysisBayesian2006, eq. 9.15]:
+$$
+H \sim \text{\# active components in the data} \times \log\text{(signal-to-noise ratio)}
+$$
+
+It can also be seen as a "volumetric compression" from the prior to the posterior.
+If the distributions are uniform, this intuition is exact [@petrosyanSuperNestAcceleratedNested2022]: suppose we have $\pi (\theta) \equiv [\theta \in V_{\pi}] / V_{\pi}$ and $p(\theta) \equiv [\theta \in V_{p}] / V_{p}$, where the two volumes are such that $V_{p} \subset V_{\pi}$.[^4] Then,  
+$$
+\text{KL} (p \parallel \pi) = \int_{V_{\pi}} \frac{[\theta \in V_{p}]}{V_{p}} \log \frac{V_{\pi}}{V_{p}} \text{d}\theta = \log \frac{V_{\pi}}{V_{p}},
+$$
+
+The integral can be restricted to the $V_{p}$ volume, since the integrand is zero outside it.
+Another useful special case to develop an intuition is the one in which our prior is a Gaussian distribution with standard deviation $\sigma$, and our posterior is centered on the same value but its standard deviation is $\sigma' = \sigma / k$.
+Then, the information gain is [@buchnerIntuitionPhysicistsInformation2022]:
+$$
+\text{KL}(\mathcal{N}(\mu, \sigma') \parallel \mathcal{N}(\mu, \sigma)) = \log k + \frac{1}{2} \left(  \frac{1}{k^{2}} - 1 \right)\,.
+$$
+
+We can compute the theoretical value for the entropy in the example above, since the computation is analytic in the Gaussian case: it is known that the differential entropy of a $d$-dimensional multivariate Gaussian random variable $f \sim \mathcal{N}(\mu, C)$ is [@coverElementsInformationTheory2006, theorem 8.4.1]:
+$$
+- \int_{\mathbb{R}^{d}} f(\theta) \log f(\theta) \ \text{d}^{d}\theta = \frac{d}{2}\log(2 \pi e) + \log \det C \,.
+$$
+
+The integral we need to compute $H$ is very similar. The sign is opposite, and instead of being over $\mathbb{R}^{2}$ it is only over $[0, 1]^{2}$. The region outside of this box is, however, more than $10\sigma$ from the mean, therefore its contribution is negligible.
+The results are compatible:
+
+```{python}
+print(f'H obtained from sampling = {sampler.results.information[-1]}')
+print(f'Analytical estimate for H = {-ndim/2 * (1+np.log(2 * np.pi)) - .5 * np.log(np.linalg.det(C))}')
+```
+
+#### Algorithm termination
+
+As described, the nested sampling algorithm could continue in its compression forever, with ever-smaller compression $\log X$. However, if the likelihood function is bounded, after a certain number of iterations the prior volume will be concentrated around its maximum value, 
+
+```{python}
+fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, gridspec_kw={'hspace': 0 })
+axs[1].plot(sampler.results.logvol, sampler.results.logl)
+axs[1].set_ylim(-10, sampler.results.logl[-1]+2)
+axs[1].set_xlabel('Prior volume compression $\log X$')
+axs[1].set_ylabel('Log-likelihood $\log \mathcal{L}$')
+axs[1].set_xlim(*reversed(axs[1].get_xlim()))
+
+axs[0].plot(sampler.results.logvol, sampler.results.logz)
+axs[0].set_ylim(-10, np.max(sampler.results.logz)+2)
+axs[0].set_ylabel('Log-evidence $\log \mathcal{Z}$')
+
+for ax in axs:
+	x0, x1 = -10, ax.get_xlim()[1]
+	y0, y1 = ax.get_ylim()
+	ax.fill(
+		(x0, x0, x1, x1), 
+		(y0, y1, y1, y0), 
+		c='grey', 
+		alpha=.1
+	)
+axs[0].arrow(-10, -4, -3, 0, width=.1, color='black')
+_ = axs[0].text(-10.5, -6, 'Little contribution to the integral')
+```
+
+#### Exploration time
+
+The information gain provides an estimate of the expected volumetric compression: we expect to be sampling from the bulk of the posterior mass when $\log X \sim -H$, which will take approximately $n_\text{live}H \pm \sqrt{ n_\text{live}H }$ iterations due to Poisson variability.
+
+If $n_\text{live}H$ is large, we expect the dominant source of uncertainty to be the one on the compression reached  at that stage - it will be much larger than the uncertainty on the compression in the $\mathcal{O}(\sqrt{ n_\text{live}H })$ iterations required to traverse the posterior mass.
+This leads us to the estimate
+$$
+\mathtt{std}(\log Z) \approx \sqrt{ \frac{H}{n_\text{live}} } \,.
+$$
+
+So, for a fixed variance on the evidence, we need to have $n_\text{live} \propto H$; therefore, the number of iterations is approximately $n_\text{iter} \propto n_\text{live}H \propto H^{2}$. 
+
+#### Sampling options {#sec-ns-sampling-options}
+
+Nested sampling is, in a way, a meta-algorithm: the sub-algorithm used to sample a new point from the prior subject to the constraint that its likelihood be higher than the last rejected point is a crucial determinant of the computational complexity and behavior of the implementation.
+This problem is called Likelihood-Restricted Prior Sampling.
+
+@buchnerNestedSamplingMethods2021 gives a review of several possible options, which can be classified into:
+
+- MCMC-based methods
+- region-based methods
+- hybrid methods
+- ML-based methods
+
+In all cases, 
+
+[^1]: It will not necessarily be _strictly_ decreasing, but that is not a conceptual issue. One can introduce jitter in the likelihood, varying it at each point by an inconsequential amount, in order to ensure that the decreasing condition is verified precisely.
+[^2]: In general, the $n$-th smallest out of $k$ uniform random variates in $[0, 1]$ is distributed according to $\text{beta}(k, n-k+1) \propto x^{n-1}(1-x)^{k-n}$; here we are looking at the $k$-th smallest (i.e. the largest).
+[^4]: The square brackets are the Iverson bracket, as defined by @knuthTwoNotesNotation1992.

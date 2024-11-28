@@ -1,0 +1,36 @@
+---
+format:
+    html:
+        code-fold: true
+        bibliography: nested-sampling.bib
+        execute:
+            debug: false
+        toc: true
+        self-contained: true
+    pdf:
+        execute:
+            echo: false
+        bibliography: nested-sampling.bib
+---
+
+```{python}
+import matplotlib.pyplot as plt
+from pathlib import Path
+plt.rc('text', usetex=True)
+
+data_path = Path('.').resolve() / 'data'
+```
+
+# Nested sampling for evidence estimation
+
+{{< include sections/_pe-general.qmd >}}
+
+{{< include sections/_nested-sampling.qmd >}}
+
+{{< include sections/_ns-acceleration-methods.qmd >}}
+
+## References {.unnumbered}
+
+::: {#refs}
+:::
+

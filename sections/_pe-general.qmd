@@ -1,0 +1,185 @@
+## Inference and model comparison
+
+When performing the analysis of some data $d$ according to some model $M$ parameterized by some finite number of parameters $\theta$, we employ Bayes' theorem, which is derived by expressing the joint probability $\text{prob}(d, \theta | M)$ in two different ways: 
+
+$$ \text{prob}(d, \theta | M) = \mathcal{L}(d | \theta, M) \pi (\theta | M) = p(\theta | d, M) \mathcal{Z}(d | M)\,.
+$$
+
+The entries in this equation are: 
+
+- the _likelihood_ $\mathcal{L}$ of the data given the model and a specific choice of its parameters - it is a probability distribution over the data (i.e. $\int \mathcal{L}(d|\theta, M) \text{d}d = 1$), but we interpret it as a function of the parameters $\theta$ while the data are fixed;
+- the _prior_ $\pi$ - a representation of our beliefs about the model's parameters before seeing the data;
+- the _posterior_ $p$ for the model's parameters - a representation of our updated beliefs about them after seeing the data;
+- the _evidence_ $\mathcal{Z}$ for the model - a normalization constant for the posterior, or the likelihood for the data marginalized over all the model's parameters.
+
+The likelihood and prior are part of the problem definition, and can typically be readily computed at any given value of the parameters.
+What we refer to as "computing the posterior" means obtaining a useful representation for it. 
+If the parameter space is high-dimensional, evaluating the likelihood on a grid quickly becomes unpractical. A common solution to this issue is to use stochastic methods such as nested sampling [@sec-nested-sampling], which allow us to obtain a set of samples $\theta _i$ distributed according to the posterior.
+This way of representing a posterior is convenient, since we can easily compute summary statistics from it, such as the expectation value of any function $f(\theta)$:
+
+$$ \langle f \rangle \approx \frac{1}{N} \sum _{i=1}^N f(\theta _i) \,.
+$$
+
+### Model comparison {#sec-model-comparison}
+
+In order to illustrate the use of the evidence $\mathcal{Z}$ for model comparison, we define a simple problem: 
+suppose we have a set of data points $(x_{i}, y_{i})$ with uncertainties $\sigma_{y}$ on the $y$ values.
+
+We will compare two simple _nested_ models, namely a parabolic one with $y = a x^{2}+bx+c$ and a linear one with $y = bx+c$. 
+Model comparison can also be performed for non-nested models, but the nested case has some nice properties we will showcase later.
+
+Let us generate the data and plot it: it will come from the parabolic model.
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+kwargs = {
+	'fmt': 'o',
+	'capsize': 5,
+	'alpha': .8,
+}
+
+rng = np.random.default_rng(seed=1)
+
+n_points = 20
+
+x_i = np.linspace(-5, 5, num=n_points)
+sigma_y = 1
+true_a = -0.1
+true_b = 0.5
+true_c = 3
+
+def model(x, a, b, c):
+	return a*x**2 + b*x + c
+
+y_i = model(x_i, true_a, true_b, true_c) + rng.normal(scale=sigma_y, size=n_points)
+
+_ = plt.errorbar(x_i, y_i, sigma_y, **kwargs)
+_ = plt.xlabel('$x$')
+_ = plt.ylabel('$y$')
+```
+
+We can then analyze this data, using a Gaussian likelihood and setting (somewhat arbitrarily) uniform priors for the parameters $a$, $b$ and $c$ in the range $[-10, 10]$.
+
+```{python}
+from dynesty import DynamicNestedSampler
+
+lnorm = -0.5 * (
+	np.log(2 * np.pi) * n_points +
+    np.log(sigma_y**2 * n_points))
+
+def loglike(theta):
+	y = model(x_i, *theta)
+	return - 0.5 * ((y-y_i)**2).sum() / sigma_y**2 + lnorm
+
+def loglike_linear(theta):
+	y = model(x_i, 0, *theta)
+	return - 0.5 * ((y-y_i)**2).sum() / sigma_y**2 + lnorm
+
+def prior_transform(u):
+	# flat prior in [-10, 10] for all parameters
+	return u*20. - 10.
+
+fname = data_path / 'cache' / 'parabolic_model.pkl'
+
+if fname.exists():
+	sampler_parabola = DynamicNestedSampler.restore(str(fname))
+else:
+	sampler_parabola = DynamicNestedSampler(loglike, prior_transform, 3, nlive=500)
+	sampler_parabola.run_nested(dlogz_init=0.01)
+	sampler_parabola.save(str(fname))
+```
+
+```{python}
+fname = data_path / 'cache' / 'linear_model.pkl'
+
+if fname.exists():
+	sampler_linear = DynamicNestedSampler.restore(str(fname))
+else:
+	sampler_linear = DynamicNestedSampler(loglike_linear, prior_transform, 2, nlive=500)
+	sampler_linear.run_nested(dlogz_init=0.01)
+	sampler_linear.save(str(fname))
+```
+
+Since these analyses were done with Nested Sampling (see @sec-nested-sampling), we have estimates for the posterior distributions of the parameters as well as the evidences.
+This allows us to compute a Bayes Factor:
+$$
+\log \text{BF}^{\text{parabola}}_\text{line} = \log Z_\text{parabola} - \log Z_\text{line}\,,
+$$
+
+which appears in the equation for the posterior odds for one model against the other:
+$$
+\underbrace{ \frac{p(M_\text{parabola} | d)}{P(M_\text{line}| d)} }_{ \text{posterior odds} } 
+= \text{BF}^{\text{parabola}}_{\text{line}} \underbrace{ \frac{p(M_{\text{parabola}})}{p(M_{\text{line}})} }_{ \text{prior odds} }\,.
+$$
+In this case, the curvature of the data is strong enough for the Bayes Factor to favor the parabolic model (although not by much). 
+
+```{python}
+for sampler, name in zip([sampler_parabola, sampler_linear], ['parabola', 'line']):
+	print(f'{name}: Z = {sampler.results.logz[-1]:.2f} +- {sampler.results.logzerr[-1]:.2f}')
+
+bayes_factor = sampler_parabola.results.logz[-1] - sampler_linear.results.logz[-1]
+bf_error = np.sqrt(
+	sampler_parabola.results.logzerr[-1]**2 + 
+	sampler_linear.results.logzerr[-1]**2
+)
+
+print(f'log Bayes factor = {bayes_factor:.2f} +- {bf_error:.2f} nats for the parabolic model')
+```
+
+Since the models we are considering were nested, we have a comparison point for our Bayes Factor: the Savage-Dickey density ratio. 
+Our models being nested means that the linear one is a special case of the parabolic one (with $a=0$); the priors for the other parameters are exactly the same in both cases. Then, it can be shown that the Bayes Factor is equal to the ratio of the posterior to the prior for the parabolic model, computed at the value for which the parabolic model reduces to the linear one:
+$$
+\text{BF}^{\text{parabola}}_\text{line} = \frac{p(a=0 | d, M_\text{parabola})}{\pi(a=0|M_\text{parabola})}\,.
+$$
+
+One might then think that, at least in this type of scenario, going through the evidence computation with a powerful tool such as Nested Sampling was unnecessary: the posterior distribution can be computed for cheaper, after all.
+However, as @fig-savage-dickey shows, actually computing the value for the posterior density distribution is not as easy. We can approximate it with tools like a histogram or a kernel density estimate, but any such method will suffer from low statistics if we need to explore the edges of the distribution, which is what we see here: we would need an enormous amount of posterior samples to reach the same accuracy on the ratio of the distributions we get with Nested Sampling.
+
+```{python}
+#| label: fig-savage-dickey
+#| fig-cap: "Consistency of the Savage-Dickey density ratio and Nested Sampling estimates for the Bayes Factor. "
+
+from scipy.stats import gaussian_kde
+a_samples = sampler_parabola.results.samples[:, 0]
+a_weights = sampler_parabola.results.importance_weights()
+
+a_range = [-0.25, 0.05]
+cmap = plt.get_cmap('coolwarm')
+
+a_values = np.linspace(*a_range, num=50)
+
+values, edges = np.histogram(a_samples, bins=a_values, density=True, weights=a_weights)
+kde = gaussian_kde(a_samples, weights=a_weights)
+
+plt.stairs(values, edges, alpha=.5, color=cmap(1.))
+plt.plot(a_values, kde(a_values), alpha=.9, color=cmap(1.))
+
+_ = plt.axhline(1/20, alpha=.9, color=cmap(0.))
+_ = plt.axvline(true_a, ls='--', lw=1, c='black')
+_ = plt.yscale('log')
+_ = plt.xlim(*a_range)
+_ = plt.ylim(1e-3, 5e1)
+posterior_at_0 = 1/20 * np.exp(-bayes_factor)
+_ = plt.errorbar(0, posterior_at_0, posterior_at_0* bf_error, **kwargs, color='black')
+
+
+_ = plt.arrow(0, 1/20, 0, 1/20*(np.exp(-bayes_factor)-1), length_includes_head=True, color=cmap(0.), alpha=.5, width=0.003)
+
+_ = plt.xlabel('$a$')
+_ = plt.ylabel('Marginal posterior and prior densities $[\mathrm{d}p / \mathrm{d} a]$')
+
+ax = plt.gca()
+
+x1, x2, y1, y2 = -0.01, 0.01, posterior_at_0*0.7, posterior_at_0*1.3  # subregion of the original image
+axins = ax.inset_axes(
+    [0.6, 0.6, 0.37, 0.37],
+    xlim=(x1, x2), ylim=(y1, y2), xticklabels=[], yticklabels=[])
+axins.arrow(0, 1/20, 0, 1/20*(np.exp(-bayes_factor)-1), length_includes_head=True, color=cmap(0.), alpha=.5, width=0.03)
+axins.errorbar(0, posterior_at_0, posterior_at_0* bf_error, **kwargs, color='black')
+axins.stairs(values, edges, alpha=.5, color=cmap(1.))
+ax.indicate_inset_zoom(axins, edgecolor="black")
+_ = axins.plot(a_values, kde(a_values), alpha=.5, color=cmap(1.))
+
+```
