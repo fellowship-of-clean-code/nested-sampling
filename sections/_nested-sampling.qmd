@@ -1,26 +1,26 @@
 ## Nested sampling {#sec-nested-sampling}
 
-Nested sampling, introduced by Skilling in 2006 [@skillingNestedSamplingGeneral2006], is an algorithm designed to compute the _evidence_ $\mathcal{Z}$ as well as the posterior distribution on the parameters. 
+Nested sampling, introduced by Skilling in the early 2000s (@skillingNestedSampling2004, @skillingNestedSamplingGeneral2006), is an algorithm designed to compute the _evidence_ $\mathcal{Z}$ as well as the posterior distribution on the parameters. 
 
 The evidence is computed through the integral
 
 $$ \mathcal{Z}(d|M) = \int \mathcal{L}(d | \theta, M) \pi (\theta | M) \text{d}^n\theta \,.
 $$
 
-This integral is in $n$ dimensions (where $n$ is the dimensionality of the parameter space) and therefore difficult to work with. The idea in nested sampling is to rewrite it in terms of the auxiliary variable $X$ (employing the notation of @siviaDataAnalysisBayesian2006), defined as the prior volume contained within a likelihood constraint $\mathcal{L} \geq L$:
+This integral is in $n$ dimensions (where $n$ is the dimensionality of the parameter space) and therefore difficult to work with. The idea in nested sampling is to rewrite it in terms of the auxiliary variable $X$, defined as the prior volume contained within a likelihood constraint $\mathcal{L} \geq L$:
 
 $$ X (L) = \int_{\mathcal{L}(d | \theta, M) \geq L} \pi (\theta | M) \text{d}^n\theta\,.
 $$
 
 Since the prior is a normalized probability distribution and the likelihood ranges from 0 to $L _{\text{max}}$, this variable will range from $X(0) = 1$ to $X(L _{\text{max}}) = 0$, and it will always be decreasing.[^1]
 We can define its inverse, $L(X)$, 
-and rewrite the likelihood integral through integration by parts: the evidence is the expectation value of the likelihood, therefore 
+and rewrite the likelihood integral through integration by parts: the evidence is the expectation value of the likelihood, therefore, starting from the definition of a Lebesgue integral:
 $$
 \mathcal{Z}(d|M) = \int_{0}^{L_\text{max}} X(L) \text{d}L 
 = X L |_{L=0}^{L=L_\text{max}} - \int_{X(L=0)}^{X(L=L_\text{max})} L(X)\text{d}X = \int_{0}^{1}L(X)\text{d}X\,.
 $$ {#eq-evidence-integral}
 
-For a detailed discussion of the mathematical details, also see [@ashtonNestedSamplingPhysical2022].
+For a detailed discussion of the mathematical details, also see @ashtonNestedSamplingPhysical2022, @siviaDataAnalysisBayesian2006.
 
 ### Prior compression {#sec-prior-compression}
 
@@ -248,6 +248,9 @@ The first diagnostic tool is the _run plot_, where we see the accumulation of th
 - the accumulation of evidence, with a corresponding error estimated as discussed in @sec-information-gain
 
 ```{python}
+#| label: fig-nested-sampling-runplot
+#| fig-cap: A run plot, illustrating the progress of a nested sampling run.
+
 from dynesty import plotting as dyplot
 lnz_truth = 0
 fig, axes = dyplot.runplot(sampler.results, lnz_truth=lnz_truth)
@@ -266,6 +269,9 @@ When one of them gets replaced it will be assigned a new likelihood in the range
 The points are colored by their importance weights, $w_{i}L_{i} / Z$, and to the right we see a density estimate plot for the posterior distribution of each parameter together with a 95% confidence interval.
 
 ```{python}
+#| label: fig-nested-sampling-traceplot
+#| fig-cap: A trace plot, illustrating the parameter constraints for a nested sampling run.
+
 fig, axes = dyplot.traceplot(
 	sampler.results, 
 	truths=np.zeros(ndim),
@@ -285,6 +291,9 @@ The _corner plot_ is a great tool to extract physical understanding about our mo
 It shows the marginal density plot for all our parameters, as well as for each pair of parameters.
 
 ```{python}
+#| label: fig-nested-sampling-cornerplot
+#| fig-cap: A corner plot, showing correlations in the posterior distribution.
+
 _ = dyplot.cornerplot(
 	sampler.results, 
 	color='blue', 
@@ -314,6 +323,10 @@ $$
 We can show this in different ways; an easy one to implement is by drawing samples from the posterior and plotting the model realization corresponding to each of them. The ensemble of curves will follow the posterior predictive distribution. 
 
 ```{python}
+#| label: fig-nested-sampling-ppd
+#| fig-cap: A posterior predictive density plot, sketching the posterior densities by plotting 100 curves sampled from the posterior.
+
+
 plt.errorbar(x_i, y_i, sigma_y, **kwargs, c='black')
 plt.xlabel('$x$')
 plt.ylabel('$y$')
@@ -327,6 +340,8 @@ for posterior_sample in sampler_linear.results.samples_equal()[:100]:
 	plt.plot(x_i, model(x_i, 0, *posterior_sample), c=cmap(1.), alpha=.1)
 
 ```
+
+For an in-depth discussion of posterior predictive checks in the context of gravitational wave data analysis, see [@romero-shawWhenModelsFail2022].
 
 ### Information gain {#sec-information-gain}
 
@@ -375,9 +390,12 @@ print(f'Analytical estimate for H = {-ndim/2 * (1+np.log(2 * np.pi)) - .5 * np.l
 
 #### Algorithm termination
 
-As described, the nested sampling algorithm could continue in its compression forever, with ever-smaller compression $\log X$. However, if the likelihood function is bounded, after a certain number of iterations the prior volume will be concentrated around its maximum value, 
+As described, the nested sampling algorithm could continue in its compression forever, with ever-smaller compression $\log X$. However, if the likelihood function is bounded, after a certain number of iterations the prior volume will be concentrated around its maximum value, with all the live points having similar likelihood values, as @fig-nested-sampling-termination shows.
 
 ```{python}
+#| label: fig-nested-sampling-termination
+#| fig-cap: An illustration of the conditions for termination in nested sampling.
+
 fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, gridspec_kw={'hspace': 0 })
 axs[1].plot(sampler.results.logvol, sampler.results.logl)
 axs[1].set_ylim(-10, sampler.results.logl[-1]+2)
@@ -402,6 +420,10 @@ axs[0].arrow(-10, -4, -3, 0, width=.1, color='black')
 _ = axs[0].text(-10.5, -6, 'Little contribution to the integral')
 ```
 
+
+Thus, we can find a termination condition based on diagnosing whether this is happening: for example, we can compute the contribution to the evidence integral from the current live points, and stop iterating when that becomes small (this is the default in dynesty [@speagleDYNESTYDynamicNested2020]).
+Since this is a stochastic algorithm, there is always a chance we are making a mistake when terminating: for example, there could be a region with very low volume but high likelihood that none of the live points have happened upon, but which could give a significant contribution to the evidence.
+
 #### Exploration time
 
 The information gain provides an estimate of the expected volumetric compression: we expect to be sampling from the bulk of the posterior mass when $\log X \sim -H$, which will take approximately $n_\text{live}H \pm \sqrt{ n_\text{live}H }$ iterations due to Poisson variability.
@@ -414,19 +436,41 @@ $$
 
 So, for a fixed variance on the evidence, we need to have $n_\text{live} \propto H$; therefore, the number of iterations is approximately $n_\text{iter} \propto n_\text{live}H \propto H^{2}$. 
 
-#### Sampling options {#sec-ns-sampling-options}
+### Sampling options {#sec-ns-sampling-options}
 
 Nested sampling is, in a way, a meta-algorithm: the sub-algorithm used to sample a new point from the prior subject to the constraint that its likelihood be higher than the last rejected point is a crucial determinant of the computational complexity and behavior of the implementation.
 This problem is called Likelihood-Restricted Prior Sampling.
 
-@buchnerNestedSamplingMethods2021 gives a review of several possible options, which can be classified into:
+A review of several possible options can be found in [@buchnerNestedSamplingMethods2021, section 5] or [@ashtonNestedSamplingPhysical2022, table 2]. Roughly speaking, they can be classified into:
 
 - MCMC-based methods
 - region-based methods
 - hybrid methods
 - ML-based methods
 
-In all cases, 
+While the current set of live points is often used as a guide, the statistical properties of nested sampling hold as long as the new point is uncorrelated from the previous ones.
+
+#### The prior transform
+
+The way most nested sampling software implements likelihood-restricted prior sampling starts from the assumption that the prior is uniform in the box $[0, 1]^{d}$.
+
+This seems restrictive at first glance, but does not actually constrain the class of models we can consider.
+For any given prior $\pi(\theta)$ we want to use, it means that we need to find a mapping $g\colon [0, 1]^{d} \to \mathbb{R}^{d}$  between the unit $d$-dimensional box and our physical prior space, such that if $u \sim \mathcal{U}([0, 1]^{d})$, then $g(u) \sim \pi$, i.e. mapping uniformly-distributed random numbers onto values distributed according to our prior.
+
+If our prior is _separable_, i.e. $\pi (\theta) = \prod_{i=1}^{d} \pi_{i}(\theta_{i})$, then the problem is solvable analytically: the prior transform map will be  such that
+$$
+g(u) = [\text{CDF}^{-1}_{\pi_{i}}(u_{i})]_{i}
+$$
+where "CDF" denotes the cumulative distribution of $\pi_{i}$:
+$$
+\text{CDF}_{\pi_{i}} (\theta_{i}) = \int_{-\infty}^{\theta_{i}} \pi_{i}(y) \text{d}y \in [0,1]
+$$
+and $\text{CDF}^{-1}$ is its inverse. 
+The cumulative distribution can also be computed from samples, so in the case of separate priors we need not have an analytical expression for them.
+
+In the non-separable case there is no general procedure to accomplish this, which is equivalent to stating that there is no algorithm to "analytically" sample from an arbitrary distribution.
+This restricts the space of usable priors, since we need to be able to sample from them. 
+Typically, we use priors with known analytical expressions.
 
 [^1]: It will not necessarily be _strictly_ decreasing, but that is not a conceptual issue. One can introduce jitter in the likelihood, varying it at each point by an inconsequential amount, in order to ensure that the decreasing condition is verified precisely.
 [^2]: In general, the $n$-th smallest out of $k$ uniform random variates in $[0, 1]$ is distributed according to $\text{beta}(k, n-k+1) \propto x^{n-1}(1-x)^{k-n}$; here we are looking at the $k$-th smallest (i.e. the largest).

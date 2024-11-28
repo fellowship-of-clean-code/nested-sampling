@@ -13,24 +13,38 @@ The entries in this equation are:
 - the _evidence_ $\mathcal{Z}$ for the model - a normalization constant for the posterior, or the likelihood for the data marginalized over all the model's parameters.
 
 The likelihood and prior are part of the problem definition, and can typically be readily computed at any given value of the parameters.
-What we refer to as "computing the posterior" means obtaining a useful representation for it. 
-If the parameter space is high-dimensional, evaluating the likelihood on a grid quickly becomes unpractical. A common solution to this issue is to use stochastic methods such as nested sampling [@sec-nested-sampling], which allow us to obtain a set of samples $\theta _i$ distributed according to the posterior.
+What we refer to as "computing the posterior" means obtaining a useful representation for it: the questions we are often interested in are in the form
+
+- what is the mean value and standard deviation of parameter $\theta_{i}$?
+- what is the smallest region to which we can constrain the parameter $\theta_{i}$ with a certain probability, such as 90%?
+- what is the correlation between parameter $\theta_{i}$ and parameter $\theta_{j}$?
+
+If the parameter space is high-dimensional, evaluating the posterior on a grid quickly becomes unpractical. A common solution to this issue is to use stochastic methods, which allow us to obtain a set of samples $\theta _i$ distributed according to the posterior.
 This way of representing a posterior is convenient, since we can easily compute summary statistics from it, such as the expectation value of any function $f(\theta)$:
 
 $$ \langle f \rangle \approx \frac{1}{N} \sum _{i=1}^N f(\theta _i) \,.
 $$
 
+There exist many different such algorithms. Several of them can probe the posterior distribution $p(\theta|d, M) \propto \mathcal{L}(d|\theta, M) \pi(\theta|M)$ without computing its normalization constant $\mathcal{Z}$: for example, Metropolis-Hastings operates by accepting or rejecting proposals based on the ratio of their probabilities, which is normalization-independent.
+
+Typically, computing a representation of the posterior is easier than also computing the evidence. Nested Sampling (@sec-nested-sampling) yields both.
+
 ### Model comparison {#sec-model-comparison}
 
-In order to illustrate the use of the evidence $\mathcal{Z}$ for model comparison, we define a simple problem: 
+Why should we care about the evidence when performing inference?
+In order to illustrate the use of the evidence $\mathcal{Z}$ for model comparison, let us define a simple problem: 
 suppose we have a set of data points $(x_{i}, y_{i})$ with uncertainties $\sigma_{y}$ on the $y$ values.
 
-We will compare two simple _nested_ models, namely a parabolic one with $y = a x^{2}+bx+c$ and a linear one with $y = bx+c$. 
+We will compare two simple _nested_ models, namely a parabolic one with $y = f(x; a, b, c) = a x^{2}+bx+c$ and a linear one with $y = f(x; b, c) = bx+c$. 
 Model comparison can also be performed for non-nested models, but the nested case has some nice properties we will showcase later.
 
 Let us generate the data and plot it: it will come from the parabolic model.
 
 ```{python}
+#| label: fig-parameter-estimation-parabolic-data
+#| fig-cap: Toy model, with data coming from a parabolic function and Gaussian errors.
+
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -60,7 +74,16 @@ _ = plt.xlabel('$x$')
 _ = plt.ylabel('$y$')
 ```
 
-We can then analyze this data, using a Gaussian likelihood and setting (somewhat arbitrarily) uniform priors for the parameters $a$, $b$ and $c$ in the range $[-10, 10]$.
+We can then analyze this data, using a Gaussian likelihood and setting (somewhat arbitrarily) uniform priors for the parameters $a$, $b$ and $c$ in the range $[-10, 10]$: 
+
+- $\pi(a, b, c) = 1 / 20^{3}$ in that range and 0 otherwise for the parabola;
+- $\pi(b, c) = 1 / 20^{2}$ in that range and 0 otherwise for the parabola;
+
+The log-likelihood will be 
+$$
+\log \mathcal{L}(\text{data} | \theta, \text{model}) = - \frac{1}{2}  \sum_{i=1}^{n} \frac{(y_{i} - f(x_{i}; \theta))^{2}}{\sigma_{y}^{2}} - \frac{n}{2} \log (2 \pi \sigma_{y}^{2}).
+$$
+
 
 ```{python}
 from dynesty import DynamicNestedSampler
@@ -102,7 +125,7 @@ else:
 	sampler_linear.save(str(fname))
 ```
 
-Since these analyses were done with Nested Sampling (see @sec-nested-sampling), we have estimates for the posterior distributions of the parameters as well as the evidences.
+We perform Bayesian inference for the two models with Nested Sampling (@sec-nested-sampling). It gives us estimates for the posterior distributions of the parameters as well as the evidences.
 This allows us to compute a Bayes Factor:
 $$
 \log \text{BF}^{\text{parabola}}_\text{line} = \log Z_\text{parabola} - \log Z_\text{line}\,,
@@ -113,6 +136,7 @@ $$
 \underbrace{ \frac{p(M_\text{parabola} | d)}{P(M_\text{line}| d)} }_{ \text{posterior odds} } 
 = \text{BF}^{\text{parabola}}_{\text{line}} \underbrace{ \frac{p(M_{\text{parabola}})}{p(M_{\text{line}})} }_{ \text{prior odds} }\,.
 $$
+
 In this case, the curvature of the data is strong enough for the Bayes Factor to favor the parabolic model (although not by much). 
 
 ```{python}

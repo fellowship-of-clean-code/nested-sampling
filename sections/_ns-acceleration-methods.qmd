@@ -3,7 +3,7 @@
 The time complexity for nested sampling can be estimated as
 
 $$
-T \propto n_{\text{live}} \times \langle t_{\text{like}} \rangle \times \langle n_{\text{replace}}\rangle \times  H 
+T \approx n_{\text{live}} \times \langle t_{\text{like}} \rangle \times \langle n_{\text{replace}}\rangle \times  H 
 $$
 
 where
@@ -13,12 +13,12 @@ where
 - $\langle n_\text{replace} \rangle$ is the average number of likelihood evaluations required to find a replacement for each dead point;
 - $H$ is the information gain between posterior and prior.
 
-Based on this equation, we can think of several ways to accelerate sampling [@rouletInferringBinaryProperties2024].
+Based on this equation, we can think of several ways to accelerate sampling;  @rouletInferringBinaryProperties2024 have reviewed many of them in the context of gravitational wave parameter estimation.
 
 ### Varying the number of live points
 
 The original nested sampling algorithm evolves a fixed number of live points throughout the run. 
-It has since been proposed that it can be more efficient to vary it [@higsonDynamicNestedSampling2019, [@speagleDYNESTYDynamicNested2020]], depending on what is the quantity we are more interested in evaluating.
+It has since been proposed that it can be more efficient to vary it (@higsonDynamicNestedSampling2019, @speagleDYNESTYDynamicNested2020), depending on what is the quantity we are more interested in evaluating.
 
 A nested sampling run gives us estimates for both the evidence and the posterior. If what we are most interested in is precisely computing the evidence, we should allocate more points in the early stages of compression, even though the posterior mass is very low there: this will give us better statistics on the active volume when we reach the posterior bulk.
 
@@ -40,7 +40,7 @@ While there is no panacea here, trying different parameters for the proposal met
 The compression $H$ is a significant determinant of the sampling cost. 
 Often, we want to use wide, uninformative priors, which significantly increases the computational cost, even though it is known that the posterior is contained within a relatively small region within them.
 
-A useful observation ([@chenBayesianPosteriorRepartitioning2022],[@petrosyanSuperNestAcceleratedNested2022]) is that when studying an inference problem defined by a likelihood $\mathcal{L}$ and prior $\pi$ we can equivalently study a different one, defined by $\mathcal{\tilde{L}}$ and $\tilde{\pi}$: as long as at every point the condition
+A useful observation (@chenBayesianPosteriorRepartitioning2022, @petrosyanSuperNestAcceleratedNested2022) is that when studying an inference problem defined by a likelihood $\mathcal{L}$ and prior $\pi$ we can equivalently study a different one, defined by $\mathcal{\tilde{L}}$ and $\tilde{\pi}$: as long as at every point the condition
 $$
 \tilde{\mathcal{L}}(\theta) \tilde{\pi}(\theta) = \mathcal{L} (\theta)\pi(\theta)
 $$

@@ -37,4 +37,3 @@ data_path = Path('.').resolve() / 'data'
 
 ::: {#refs}
 :::
-
