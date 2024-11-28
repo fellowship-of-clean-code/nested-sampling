@@ -7,10 +7,14 @@ format:
             debug: false
         toc: true
         self-contained: true
+        number-sections: true
+        number-depth: 3 
     pdf:
         execute:
             echo: false
         bibliography: nested-sampling.bib
+        number-sections: true
+        number-depth: 3
 ---
 
 ```{python}
