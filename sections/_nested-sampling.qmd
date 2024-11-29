@@ -24,16 +24,32 @@ For a detailed discussion of the mathematical details, also see @ashtonNestedSam
 
 ### Prior compression {#sec-prior-compression}
 
-Note that, by definition, $X$ is directly related to probability mass: the prior probability of an interval $[X_{0}, X_{1}]$, i.e. the prior mass which has likelihood values $L(X_{0}) < \mathcal{L} < L(X_{1})$, is 
+Note that, by definition, $X$ is directly related to probability mass: the prior probability of an interval $[X_{0}, X_{1}]$, i.e. the prior mass which has likelihood values $L(X_{1}) < \mathcal{L} < L(X_{0})$, is 
 
 $$
 p([X_{0}, X_{1}]) = \int _{L(X_{0}) < \mathcal{L}(d|\theta, M) < L(X_{1})} \pi (\theta | M) \text{d}^{n} \theta = X_{1} - X_{0}\,,
 $$
 
 where we computed the integral on a likelihood "ring" by subtracting the inside volume from the outside one.
-This is useful to us, since it means that if we distribute points uniformly according to the prior their $X$ values will also be uniformly distributed in $[0, 1]$.
+This is useful to us, since it means that if we distribute points uniformly according to the prior their $X$ values will also be uniformly distributed in $[0, 1]$. 
+More formally, the probability we are assigning to $X$ is the _push-forward_ probability measure associated to the mapping from $\theta$ to $X$ defined by $X(\theta) = X(L(\theta))$.
+For a discussion on this, see [@ashtonNestedSamplingPhysical2022, box 2].
 
-If $k$ points are uniformly distributed in an interval $[0, X^*]$, then the largest of them will have a $X$ coordinate distributed as $X _\text{max} / X^* \equiv t \sim \text{beta}(k, 1) = k t^{k-1}$,[^2] where we defined the _compression ratio_ $t$: when we discard the lowest-likelihood point with $X _\text{max}$, we will have contracted the prior volume by a factor $t$.
+If $k$ points are uniformly distributed in an interval $[0, X^*]$, then the largest of them will have a $X$ coordinate distributed as $X _\text{max} / X^* \equiv t \sim \text{beta}(k, 1) = k t^{k-1}$, where we defined the _compression ratio_ $t$: when we discard the lowest-likelihood point with $X _\text{max}$, we will have contracted the prior volume by a factor $t$. 
+
+::: {#nte-beta-distribution .callout-note collapse="true"}
+##### On the beta distribution
+
+Here is a simple argument for why $t$, the largest out of $k$ uniform random variates in $[0, 1]$, is distributed according to $t \sim k t^{k-1}$. 
+The statement can equivalently be framed in terms of the cumulative distribution: $p(t \leq T) = T^{k}$.
+
+We can think of our $k$ random variates as a point in the $k$-dimensional unit box $[0, 1]^{k}$, and since they are uniformly distributed there will be a one-to-one correspondence between volume within the box and probability mass.
+Then, the geometric meaning of the cumulative distribution is: what is the volume of the region corresponding to the event $t \leq T$, i.e. such that the maximum of the coordinates of our point is $T$?
+The answer is the box $[0, T]^{k}$, whose volume is $T^{k}$, thus proving our claim.
+
+In general, the $n$-th smallest out of $k$ uniform random variates in $[0, 1]$ is distributed according toa beta distribution, specifically $\text{beta}(k, n-k+1) \propto x^{n-1}(1-x)^{k-n}$; here we are looking at the $k$-th smallest (i.e. the largest).
+:::
+
 In terms of $\log t$, the distribution reads 
 $$
 \frac{\text{d}p}{\text{d}\log t} = t\frac{\text{d}p}{\text{d}t} = k t^{k} = k e^{k \log t}
@@ -473,5 +489,4 @@ This restricts the space of usable priors, since we need to be able to sample fr
 Typically, we use priors with known analytical expressions.
 
 [^1]: It will not necessarily be _strictly_ decreasing, but that is not a conceptual issue. One can introduce jitter in the likelihood, varying it at each point by an inconsequential amount, in order to ensure that the decreasing condition is verified precisely.
-[^2]: In general, the $n$-th smallest out of $k$ uniform random variates in $[0, 1]$ is distributed according to $\text{beta}(k, n-k+1) \propto x^{n-1}(1-x)^{k-n}$; here we are looking at the $k$-th smallest (i.e. the largest).
 [^4]: The square brackets are the Iverson bracket, as defined by @knuthTwoNotesNotation1992.
