@@ -64,6 +64,40 @@
   file = {/home/jacopo/Zotero/storage/PUU2NMMQ/Buchner_2021_Nested Sampling Methods.pdf;/home/jacopo/Zotero/storage/GCVJUHDH/2101.html}
 }
 
+@online{buchnerRelativeJumpDistance2024,
+  title = {Relative {{Jump Distance}}: A Diagnostic for {{Nested Sampling}}},
+  shorttitle = {Relative {{Jump Distance}}},
+  author = {Buchner, Johannes},
+  date = {2024-02-19},
+  eprint = {2402.11936},
+  eprinttype = {arXiv},
+  eprintclass = {stat},
+  doi = {10.48550/arXiv.2402.11936},
+  url = {http://arxiv.org/abs/2402.11936},
+  urldate = {2024-12-12},
+  abstract = {Nested sampling is widely used in astrophysics for reliably inferring model parameters and comparing models within a Bayesian framework. To address models with many parameters, Markov Chain Monte Carlo (MCMC) random walks are incorporated within nested sampling to advance a live point population. Diagnostic tools for nested sampling are crucial to ensure the reliability of astrophysical conclusions. We develop a diagnostic to identify problematic random walks that fail to meet the requirements of nested sampling. The distance from the start to the end of the random walk, the jump distance, is divided by the typical neighbor distance between live points, computed robustly with the MLFriends algorithm, to obtain a relative jump distance (RJD). We propose the geometric mean RJD and the fraction of RJD{$>$}1 as new summary diagnostics. Relative jump distances are investigated with mock and real-world inference applications, including inferring the distance to gravitational wave event GW170817. Problematic nested sampling runs are identified based on significant differences to reruns with much longer MCMC chains. These consistently exhibit low average RJDs and f(RJD{$>$}1) values below 50 percent. The RJD is more sensitive than previous tests based on the live point insertion order. The RJD diagnostic is proposed as a widely applicable diagnostic to verify inference with nested sampling. It is implemented in the UltraNest package in version 4.1.},
+  pubstate = {prepublished},
+  keywords = {Astrophysics - Instrumentation and Methods for Astrophysics,Statistics - Methodology},
+  file = {/home/jacopo/Zotero/storage/IURHSRYD/Buchner - 2024 - Relative Jump Distance a diagnostic for Nested Sa.pdf;/home/jacopo/Zotero/storage/VMJVHFKA/2402.html}
+}
+
+@online{burkeMindGapAddressing2025,
+  title = {Mind the Gap: Addressing Data Gaps and Assessing Noise Mismodeling in {{LISA}}},
+  shorttitle = {Mind the Gap},
+  author = {Burke, Ollie and Marsat, Sylvain and Gair, Jonathan R. and Katz, Michael L.},
+  date = {2025-02-24},
+  eprint = {2502.17426},
+  eprinttype = {arXiv},
+  eprintclass = {gr-qc},
+  doi = {10.48550/arXiv.2502.17426},
+  url = {http://arxiv.org/abs/2502.17426},
+  urldate = {2025-02-26},
+  abstract = {Due to the sheer complexity of the Laser Interferometer Space Antenna (LISA) space mission, data gaps arising from instrumental irregularities and/or scheduled maintenance are unavoidable. Focusing on merger-dominated massive black hole binary signals, we test the appropriateness of the Whittle-likelihood on gapped data in a variety of cases. From first principles, we derive the likelihood valid for gapped data in both the time and frequency domains. Cheap-to-evaluate proxies to p-p plots are derived based on a Fisher-based formalism, and verified through Bayesian techniques. Our tools allow to predict the altered variance in the parameter estimates that arises from noise mismodeling, as well as the information loss represented by the broadening of the posteriors. The result of noise mismodeling with gaps is sensitive to the characteristics of the noise model, with strong low-frequency (red) noise and strong high-frequency (blue) noise giving statistically significant fluctuations in recovered parameters. We demonstrate that the introduction of a tapering window reduces statistical inconsistency errors, at the cost of less precise parameter estimates. We also show that the assumption of independence between inter-gap segments appears to be a fair approximation even if the data set is inherently coherent. However, if one instead assumes fictitious correlations in the data stream, when the data segments are actually independent, then the resultant parameter recoveries could be inconsistent with the true parameters. The theoretical and numerical practices that are presented in this work could readily be incorporated into global-fit pipelines operating on gapped data.},
+  pubstate = {prepublished},
+  keywords = {Astrophysics - High Energy Astrophysical Phenomena,Astrophysics - Instrumentation and Methods for Astrophysics,General Relativity and Quantum Cosmology},
+  file = {/home/jacopo/Zotero/storage/942977CX/Burke et al. - 2025 - Mind the gap addressing data gaps and assessing n.pdf;/home/jacopo/Zotero/storage/DWXPBN38/2502.html}
+}
+
 @online{chenBayesianPosteriorRepartitioning2022,
   title = {Bayesian Posterior Repartitioning for Nested Sampling},
   author = {Chen, Xi and Feroz, Farhan and Hobson, Michael},
@@ -109,6 +143,52 @@
   pagetotal = {784}
 }
 
+@online{daxGroupEquivariantNeural2023,
+  title = {Group Equivariant Neural Posterior Estimation},
+  author = {Dax, Maximilian and Green, Stephen R. and Gair, Jonathan and Deistler, Michael and Schölkopf, Bernhard and Macke, Jakob H.},
+  date = {2023-05-30},
+  eprint = {2111.13139},
+  eprinttype = {arXiv},
+  eprintclass = {cs},
+  doi = {10.48550/arXiv.2111.13139},
+  url = {http://arxiv.org/abs/2111.13139},
+  urldate = {2025-02-13},
+  abstract = {Simulation-based inference with conditional neural density estimators is a powerful approach to solving inverse problems in science. However, these methods typically treat the underlying forward model as a black box, with no way to exploit geometric properties such as equivariances. Equivariances are common in scientific models, however integrating them directly into expressive inference networks (such as normalizing flows) is not straightforward. We here describe an alternative method to incorporate equivariances under joint transformations of parameters and data. Our method -- called group equivariant neural posterior estimation (GNPE) -- is based on self-consistently standardizing the "pose" of the data while estimating the posterior over parameters. It is architecture-independent, and applies both to exact and approximate equivariances. As a real-world application, we use GNPE for amortized inference of astrophysical binary black hole systems from gravitational-wave observations. We show that GNPE achieves state-of-the-art accuracy while reducing inference times by three orders of magnitude.},
+  pubstate = {prepublished},
+  keywords = {Astrophysics - Instrumentation and Methods for Astrophysics,Computer Science - Machine Learning,General Relativity and Quantum Cosmology,Statistics - Machine Learning},
+  file = {/home/jacopo/Zotero/storage/2LQESRQM/Dax et al. - 2023 - Group equivariant neural posterior estimation.pdf}
+}
+
+@online{daxNeuralImportanceSampling2022,
+  title = {Neural {{Importance Sampling}} for {{Rapid}} and {{Reliable Gravitational-Wave Inference}}},
+  author = {Dax, Maximilian and Green, Stephen R. and Gair, Jonathan and Pürrer, Michael and Wildberger, Jonas and Macke, Jakob H. and Buonanno, Alessandra and Schölkopf, Bernhard},
+  date = {2022-10-11},
+  eprint = {2210.05686},
+  eprinttype = {arXiv},
+  eprintclass = {astro-ph, physics:gr-qc},
+  url = {http://arxiv.org/abs/2210.05686},
+  urldate = {2022-11-14},
+  abstract = {We combine amortized neural posterior estimation with importance sampling for fast and accurate gravitational-wave inference. We first generate a rapid proposal for the Bayesian posterior using neural networks, and then attach importance weights based on the underlying likelihood and prior. This provides (1) a corrected posterior free from network inaccuracies, (2) a performance diagnostic (the sample efficiency) for assessing the proposal and identifying failure cases, and (3) an unbiased estimate of the Bayesian evidence. By establishing this independent verification and correction mechanism we address some of the most frequent criticisms against deep learning for scientific inference. We carry out a large study analyzing 42 binary black hole mergers observed by LIGO and Virgo with the SEOBNRv4PHM and IMRPhenomXPHM waveform models. This shows a median sample efficiency of \$\textbackslash approx 10\textbackslash\%\$ (two orders-of-magnitude better than standard samplers) as well as a ten-fold reduction in the statistical uncertainty in the log evidence. Given these advantages, we expect a significant impact on gravitational-wave inference, and for this approach to serve as a paradigm for harnessing deep learning methods in scientific applications.},
+  pubstate = {prepublished},
+  keywords = {Astrophysics - Instrumentation and Methods for Astrophysics,Computer Science - Machine Learning,General Relativity and Quantum Cosmology,To read},
+  file = {/home/jacopo/Zotero/storage/S6CAQHVF/Dax et al. - 2022 - Neural Importance Sampling for Rapid and Reliable .pdf;/home/jacopo/Zotero/storage/3P64L2AM/2210.html}
+}
+
+@online{edwardsBayesianSemiparametricPower2015,
+  title = {Bayesian Semiparametric Power Spectral Density Estimation with Applications in Gravitational Wave Data Analysis},
+  author = {Edwards, Matthew C. and Meyer, Renate and Christensen, Nelson},
+  date = {2015-08-18},
+  eprint = {1506.00185},
+  eprinttype = {arXiv},
+  doi = {10.48550/arXiv.1506.00185},
+  url = {http://arxiv.org/abs/1506.00185},
+  urldate = {2024-10-28},
+  abstract = {The standard noise model in gravitational wave (GW) data analysis assumes detector noise is stationary and Gaussian distributed, with a known power spectral density (PSD) that is usually estimated using clean off-source data. Real GW data often depart from these assumptions, and misspecified parametric models of the PSD could result in misleading inferences. We propose a Bayesian semiparametric approach to improve this. We use a nonparametric Bernstein polynomial prior on the PSD, with weights attained via a Dirichlet process distribution, and update this using the Whittle likelihood. Posterior samples are obtained using a blocked Metropolis-within-Gibbs sampler. We simultaneously estimate the reconstruction parameters of a rotating core collapse supernova GW burst that has been embedded in simulated Advanced LIGO noise. We also discuss an approach to deal with non-stationary data by breaking longer data streams into smaller and locally stationary components.},
+  pubstate = {prepublished},
+  keywords = {General Relativity and Quantum Cosmology,Physics - Data Analysis Statistics and Probability,Statistics - Applications},
+  file = {/home/jacopo/Zotero/storage/CSSEM5ZP/Edwards et al. - 2015 - Bayesian semiparametric power spectral density est.pdf;/home/jacopo/Zotero/storage/72L8T3FU/1506.html}
+}
+
 @online{handleyPolyChordNestedSampling2015,
   title = {{{PolyChord}}: Nested Sampling for Cosmology},
   shorttitle = {{{PolyChord}}},
@@ -145,6 +225,40 @@
   file = {/home/jacopo/Zotero/storage/IZTV2S4F/Higson et al. - 2019 - Dynamic nested sampling an improved algorithm for.pdf}
 }
 
+@online{huCostsBayesianParameter2024,
+  title = {Costs of {{Bayesian Parameter Estimation}} in {{Third-Generation Gravitational Wave Detectors}}: A {{Review}} of {{Acceleration Methods}}},
+  shorttitle = {Costs of {{Bayesian Parameter Estimation}} in {{Third-Generation Gravitational Wave Detectors}}},
+  author = {Hu, Qian and Veitch, John},
+  date = {2024-12-03},
+  eprint = {2412.02651},
+  eprinttype = {arXiv},
+  eprintclass = {gr-qc},
+  doi = {10.48550/arXiv.2412.02651},
+  url = {http://arxiv.org/abs/2412.02651},
+  urldate = {2025-02-21},
+  abstract = {Bayesian inference with stochastic sampling has been widely used to obtain the properties of gravitational wave (GW) sources. Although computationally intensive, its cost remains manageable for current second-generation GW detectors because of the relatively low event rate and signal-to-noise ratio (SNR). The third-generation (3G) GW detectors are expected to detect hundreds of thousands of compact binary coalescence events every year with substantially higher SNR and longer signal duration, presenting significant computational challenges. In this study, we systematically evaluate the computational costs of source parameter estimation (PE) in the 3G era by modeling the PE time cost as a function of SNR and signal duration. We examine the standard PE method alongside acceleration methods including relative binning, multibanding, and reduced order quadrature. We predict that PE for a one-month-observation catalog with 3G detectors could require billions to quadrillions of CPU core hours with the standard PE method, whereas acceleration techniques can reduce this demand to millions of core hours. These findings highlight the necessity for more efficient PE methods to enable cost-effective and environmentally sustainable data analysis for 3G detectors. In addition, we assess the accuracy of accelerated PE methods, emphasizing the need for careful treatment in high-SNR scenarios.},
+  pubstate = {prepublished},
+  keywords = {Astrophysics - Instrumentation and Methods for Astrophysics,General Relativity and Quantum Cosmology},
+  file = {/home/jacopo/Zotero/storage/WR2D4P8V/Hu and Veitch - 2024 - Costs of Bayesian Parameter Estimation in Third-Ge.pdf;/home/jacopo/Zotero/storage/T9QJDKPY/2412.html}
+}
+
+@online{huDecodingLongdurationGravitational2024,
+  title = {Decoding {{Long-duration Gravitational Waves}} from {{Binary Neutron Stars}} with {{Machine Learning}}: {{Parameter Estimation}} and {{Equations}} of {{State}}},
+  shorttitle = {Decoding {{Long-duration Gravitational Waves}} from {{Binary Neutron Stars}} with {{Machine Learning}}},
+  author = {Hu, Qian and Irwin, Jessica and Sun, Qi and Messenger, Christopher and Suleiman, Lami and Heng, Ik Siong and Veitch, John},
+  date = {2024-12-04},
+  eprint = {2412.03454},
+  eprinttype = {arXiv},
+  eprintclass = {gr-qc},
+  doi = {10.48550/arXiv.2412.03454},
+  url = {http://arxiv.org/abs/2412.03454},
+  urldate = {2025-02-26},
+  abstract = {Gravitational waves (GWs) from binary neutron stars (BNSs) offer valuable understanding of the nature of compact objects and hadronic matter. However, their analysis requires substantial computational resources due to the challenges in Bayesian stochastic sampling. The third-generation (3G) GW detectors are expected to detect BNS signals with significantly increased signal duration, detection rates, and signal strength, leading to a major computational burden in the 3G era. We demonstrate a machine learning-based workflow capable of producing source parameter estimation and constraints on equations of state (EOSs) for hours-long BNS signals in seconds with minimal hardware costs. We employ efficient compressions on the GW data and EOS using neural networks, based on which we build normalizing flows for inferences. Given that full Bayesian analysis is prohibitively time-intensive, we validate our model against (semi-)analytical predictions. Additionally, we estimate the computational demands of BNS signal analysis in the 3G era, showing that the machine learning methods will be crucial for future catalog-level analysis.},
+  pubstate = {prepublished},
+  keywords = {Astrophysics - High Energy Astrophysical Phenomena,Astrophysics - Instrumentation and Methods for Astrophysics,General Relativity and Quantum Cosmology},
+  file = {/home/jacopo/Zotero/storage/MGMZFYMI/Hu et al. - 2024 - Decoding Long-duration Gravitational Waves from Bi.pdf;/home/jacopo/Zotero/storage/WIWQP7RU/2412.html}
+}
+
 @unpublished{knuthTwoNotesNotation1992,
   title = {Two Notes on Notation},
   author = {Knuth, Donald E.},
@@ -156,6 +270,71 @@
   abstract = {The author advocates two specific mathematical notations from his popular course and joint textbook, "Concrete Mathematics". The first of these, extending an idea of Iverson, is the notation "[P]" for the function which is 1 when the Boolean condition P is true and 0 otherwise. This notation can encourage and clarify the use of characteristic functions and Kronecker deltas in sums and integrals. The second notation puts Stirling numbers on the same footing as binomial coefficients. Since binomial coefficients are written on two lines in parentheses and read "n choose k", Stirling numbers of the first kind should be written on two lines in brackets and read "n cycle k", while Stirling numbers of the second kind should be written in braces and read "n subset k". (I might say "n partition k".) The written form was first suggested by Imanuel Marx. The virtues of this notation are that Stirling partition numbers frequently appear in combinatorics, and that it more clearly presents functional relations similar to those satisfied by binomial coefficients.},
   keywords = {Mathematics - History and Overview},
   file = {/home/jacopo/Zotero/storage/3UUDI7X7/Knuth - 1992 - Two notes on notation.pdf;/home/jacopo/Zotero/storage/IAG3XHLT/9205211.html}
+}
+
+@article{leslieModebymodeRelativeBinning2021,
+  title = {Mode-by-Mode Relative Binning: {{Fast}} Likelihood Estimation for Gravitational Waveforms with Spin-Orbit Precession and Multiple Harmonics},
+  shorttitle = {Mode-by-Mode Relative Binning},
+  author = {Leslie, Nathaniel and Dai, Liang and Pratten, Geraint},
+  date = {2021-12-22},
+  journaltitle = {Physical Review D},
+  shortjournal = {Phys. Rev. D},
+  volume = {104},
+  number = {12},
+  pages = {123030},
+  publisher = {American Physical Society},
+  doi = {10.1103/PhysRevD.104.123030},
+  url = {https://link.aps.org/doi/10.1103/PhysRevD.104.123030},
+  urldate = {2024-02-27},
+  abstract = {Faster likelihood evaluation enhances the efficiency of gravitational wave signal analysis. We present mode-by-mode relative binning, a new method designed for obtaining fast and accurate likelihoods for advanced waveform models that include spin-orbit precession effects and multiple radiation harmonics from compact binary coalescence. Leveraging the “twisting-up” procedure of constructing precessing waveform modes from nonprecessing ones, the new method mitigates degrade of relative binning accuracy due to interference from superimposed modes. Additionally, we supplement algorithms for optimizing the choice of frequency bins specific to any given strain signal under analysis. Using the new method, we are able to evaluate the likelihood with up to an order of magnitude reduction in the number of waveform model calls per frequency compared to the previously used relative binning scheme, and achieve better likelihood accuracy than is sufficient for obtaining source parameter posterior distributions that are indistinguishable from the exact ones.},
+  file = {/home/jacopo/Zotero/storage/CSASE3TT/Leslie et al. - 2021 - Mode-by-mode relative binning Fast likelihood est.pdf}
+}
+
+@article{littenbergBayesianInferenceSpectral2015,
+  title = {Bayesian Inference for Spectral Estimation of Gravitational Wave Detector Noise},
+  author = {Littenberg, Tyson B. and Cornish, Neil J.},
+  date = {2015-04-14},
+  journaltitle = {Physical Review D},
+  shortjournal = {Phys. Rev. D},
+  volume = {91},
+  number = {8},
+  pages = {084034},
+  publisher = {American Physical Society},
+  doi = {10.1103/PhysRevD.91.084034},
+  url = {https://link.aps.org/doi/10.1103/PhysRevD.91.084034},
+  urldate = {2025-02-13},
+  abstract = {Gravitational wave data from ground-based detectors is dominated by instrument noise. Signals will be comparatively weak, and our understanding of the noise will influence detection confidence and signal characterization. Mismodeled noise can produce large systematic biases in both model selection and parameter estimation. Here we introduce a multicomponent, variable dimension, parametrized model to describe the Gaussian-noise power spectrum for data from ground-based gravitational wave interferometers. Called BayesLine, the algorithm models the noise power spectral density using cubic splines for smoothly varying broadband noise and Lorentzians for narrow-band line features in the spectrum. We describe the algorithm and demonstrate its performance on data from the fifth and sixth LIGO science runs. Once fully integrated into LIGO/Virgo data analysis software, BayesLine will produce accurate spectral estimation and provide a means for marginalizing inferences drawn from the data over all plausible noise spectra.},
+  file = {/home/jacopo/Zotero/storage/WCGF8KUI/Littenberg and Cornish - 2015 - Bayesian inference for spectral estimation of grav.pdf;/home/jacopo/Zotero/storage/Z263BLQ7/PhysRevD.91.html}
+}
+
+@online{morisakiRapidLocalizationInference2023,
+  title = {Rapid Localization and Inference on Compact Binary Coalescences with the {{Advanced LIGO-Virgo-KAGRA}} Gravitational-Wave Detector Network},
+  author = {Morisaki, Soichiro and Smith, Rory and Tsukada, Leo and Sachdev, Surabhi and Stevenson, Simon and Talbot, Colm and Zimmerman, Aaron},
+  date = {2023-07-25},
+  eprint = {2307.13380},
+  eprinttype = {arXiv},
+  eprintclass = {astro-ph, physics:gr-qc},
+  url = {http://arxiv.org/abs/2307.13380},
+  urldate = {2023-07-26},
+  abstract = {We present a rapid parameter estimation framework for compact binary coalescence (CBC) signals observed by the LIGO-Virgo-KAGRA (LVK) detector network. The goal of our framework is to enable optimal source localization of binary neutron star (BNS) signals in low latency, as well as improve the overall scalability of full CBC parameter estimation analyses. Our framework is based on the reduced order quadrature (ROQ) technique, and resolves its shortcomings by utilizing multiple ROQ bases in a single parameter estimation run. We have also developed sets of compact ROQ bases for various waveform models, IMRPhenomD, IMRPhenomPv2, IMRPhenomPv2\$\textbackslash\_\$NRTidalv2, and IMRPhenomXPHM. We benchmark our framework with hundreds of simulated observations of BNS signals by the LIGO-Virgo detector network, and demonstrate that it provides accurate and unbiased estimates on BNS source location, with a median analysis time of \$6\$ minutes. The median searched area is reduced by around 30\$\textbackslash\%\$ compared to estimates produced by BAYESTAR: from \$21.8\textbackslash,\textbackslash mathrm\{deg\textasciicircum 2\}\$ to \$16.6\textbackslash,\textbackslash mathrm\{deg\textasciicircum 2\}\$. Our framework also enables detailed parameter estimation taking into account gravitational-wave higher multipole moments, the tidal deformation of colliding objects, and detector calibration errors of amplitude and phase with the time scale of hours. Our rapid parameter estimation technique has been implemented in one of the LVK parameter estimation engines, BILBY, and is being employed by the automated parameter estimation analysis of the LVK alert system.},
+  pubstate = {prepublished},
+  keywords = {Astrophysics - High Energy Astrophysical Phenomena,Astrophysics - Instrumentation and Methods for Astrophysics,General Relativity and Quantum Cosmology},
+  file = {/home/jacopo/Zotero/storage/KZ2C55AA/Morisaki et al. - 2023 - Rapid localization and inference on compact binary.pdf;/home/jacopo/Zotero/storage/YXPQBBQW/2307.html}
+}
+
+@online{narolaRelativeBinningComplete2023,
+  title = {Relative Binning for Complete Gravitational-Wave Parameter Estimation with Higher-Order Modes and Precession, and Applications to Lensing and Third-Generation Detectors},
+  author = {Narola, Harsh and Janquart, Justin and Meijer, Quirijn and Haris, K. and Broeck, Chris Van Den},
+  date = {2023-08-23},
+  eprint = {2308.12140},
+  eprinttype = {arXiv},
+  eprintclass = {gr-qc},
+  url = {http://arxiv.org/abs/2308.12140},
+  urldate = {2023-08-28},
+  abstract = {Once a gravitational wave signal is detected, the measurement of its source parameters is important to achieve various scientific goals. This is done through Bayesian inference, where the analysis cost increases with the model complexity and the signal duration. For typical binary black hole signals with precession and higher-order modes, one has 15 model parameters. With standard methods, such analyses require at least a few days. For strong gravitational wave lensing, where multiple images of the same signal are produced, the joint analysis of two data streams requires 19 parameters, further increasing the complexity and run time. Moreover, for third generation detectors, due to the lowered minimum sensitive frequency, the signal duration increases, leading to even longer analysis times. With the increased detection rate, such analyses can then become intractable. In this work, we present a fast and precise parameter estimation method relying on relative binning and capable of including higher-order modes and precession. We also extend the method to perform joint Bayesian inference for lensed gravitational wave signals. Then, we compare its accuracy and speed to those of state-of-the-art parameter estimation routines by analyzing a set of simulated signals for the current and third generation of interferometers. Additionally, for the first time, we analyze some real events known to contain higher-order modes with relative binning. For binary black hole systems with a total mass larger than \$50\textbackslash, M\_\{\textbackslash odot\}\$, our method is about 2.5 times faster than current techniques. This speed-up increases for lower masses, with the analysis time being reduced by a factor of 10 on average. In all cases, the recovered posterior probability distributions for the parameters match those found with traditional techniques.},
+  pubstate = {prepublished},
+  keywords = {General Relativity and Quantum Cosmology},
+  file = {/home/jacopo/Zotero/storage/2WXHHT3L/Narola et al. - 2023 - Relative binning for complete gravitational-wave p.pdf;/home/jacopo/Zotero/storage/79W95ZMA/2308.html}
 }
 
 @online{petrosyanSuperNestAcceleratedNested2022,
@@ -211,6 +390,38 @@
   file = {/home/jacopo/Zotero/storage/9HIFFZMH/Roulet and Venumadhav - 2024 - Inferring Binary Properties from Gravitational Wav.pdf;/home/jacopo/Zotero/storage/9QZTGYEB/2402.html}
 }
 
+@online{rouletRemovingDegeneracyMultimodality2022,
+  title = {Removing Degeneracy and Multimodality in Gravitational Wave Source Parameters},
+  author = {Roulet, Javier and Olsen, Seth and Mushkin, Jonathan and Islam, Tousif and Venumadhav, Tejaswi and Zackay, Barak and Zaldarriaga, Matias},
+  date = {2022-07-07},
+  eprint = {2207.03508},
+  eprinttype = {arXiv},
+  eprintclass = {astro-ph, physics:gr-qc},
+  doi = {10.48550/arXiv.2207.03508},
+  url = {http://arxiv.org/abs/2207.03508},
+  urldate = {2022-07-11},
+  abstract = {Quasicircular binary black hole mergers are described by 15 parameters, of which gravitational wave observations can typically constrain only \$\textbackslash sim 10\$ independent combinations to varying degree. In this work, we devise coordinates that remove correlations, and disentangle well- and poorly-measured quantities. Additionally, we identify approximate discrete symmetries in the posterior as the primary cause of multimodality, and design a method to tackle this type of multimodality. The resulting posteriors have little structure and can be sampled efficiently and robustly. We provide a Python package for parameter estimation, cogwheel, that implements these methods together with other algorithms for accelerating the inference process. One of the coordinates we introduce is a spin azimuth that can be measured remarkably well in the presence of orbital precession, and we anticipate that this will shed light on the occurrence of spin-orbit misalignment in nature.},
+  pubstate = {prepublished},
+  keywords = {Astrophysics - High Energy Astrophysical Phenomena,Astrophysics - Instrumentation and Methods for Astrophysics,General Relativity and Quantum Cosmology},
+  file = {/home/jacopo/Zotero/storage/BRZI6AS4/Roulet et al. - 2022 - Removing degeneracy and multimodality in gravitati.pdf;/home/jacopo/Zotero/storage/67HNEUK8/2207.html}
+}
+
+@online{salehTemperedMultifidelityImportance2024,
+  title = {Tempered {{Multifidelity Importance Sampling}} for {{Gravitational Wave Parameter Estimation}}},
+  author = {Saleh, Bassel and Zimmerman, Aaron and Chen, Peng and Ghattas, Omar},
+  date = {2024-05-29},
+  eprint = {2405.19407},
+  eprinttype = {arXiv},
+  eprintclass = {astro-ph, physics:gr-qc, stat},
+  url = {http://arxiv.org/abs/2405.19407},
+  urldate = {2024-05-31},
+  abstract = {Estimating the parameters of compact binaries which coalesce and produce gravitational waves is a challenging Bayesian inverse problem. Gravitational-wave parameter estimation lies within the class of multifidelity problems, where a variety of models with differing assumptions, levels of fidelity, and computational cost are available for use in inference. In an effort to accelerate the solution of a Bayesian inverse problem, cheaper surrogates for the best models may be used to reduce the cost of likelihood evaluations when sampling the posterior. Importance sampling can then be used to reweight these samples to represent the true target posterior, incurring a reduction in the effective sample size. In cases when the problem is high dimensional, or when the surrogate model produces a poor approximation of the true posterior, this reduction in effective samples can be dramatic and render multifidelity importance sampling ineffective. We propose a novel method of tempered multifidelity importance sampling in order to remedy this issue. With this method the biasing distribution produced by the low-fidelity model is tempered, allowing for potentially better overlap with the target distribution. There is an optimal temperature which maximizes the efficiency in this setting, and we propose a low-cost strategy for approximating this optimal temperature using samples from the untempered distribution. In this paper, we motivate this method by applying it to Gaussian target and biasing distributions. Finally, we apply it to a series of problems in gravitational wave parameter estimation and demonstrate improved efficiencies when applying the method to real gravitational wave detections.},
+  langid = {english},
+  pubstate = {prepublished},
+  keywords = {Astrophysics - Instrumentation and Methods for Astrophysics,General Relativity and Quantum Cosmology,Statistics - Methodology},
+  file = {/home/jacopo/Zotero/storage/KYS2DLWW/Saleh et al. - 2024 - Tempered Multifidelity Importance Sampling for Gra.pdf}
+}
+
 @book{siviaDataAnalysisBayesian2006,
   title = {Data {{Analysis}}: {{A Bayesian Tutorial}}},
   shorttitle = {Data {{Analysis}}},
@@ -264,6 +475,27 @@
   file = {/home/jacopo/Zotero/storage/B9ADWEC4/Skilling_2006_Nested sampling for general Bayesian computation.pdf;/home/jacopo/Zotero/storage/6BEH25TG/06-BA127.html}
 }
 
+@article{smithBayesianInferenceGravitational2021,
+  title = {Bayesian Inference for Gravitational Waves from Binary Neutron Star Mergers in Third-Generation Observatories},
+  author = {Smith, Rory and Borhanian, Ssohrab and Sathyaprakash, Bangalore and Vivanco, Francisco Hernandez and Field, Scott and Lasky, Paul and Mandel, Ilya and Morisaki, Soichiro and Ottaway, David and Slagmolen, Bram and Thrane, Eric and Töyrä, Daniel and Vitale, Salvatore},
+  date = {2021-08-20},
+  journaltitle = {Physical Review Letters},
+  shortjournal = {Phys. Rev. Lett.},
+  volume = {127},
+  number = {8},
+  eprint = {2103.12274},
+  eprinttype = {arXiv},
+  eprintclass = {gr-qc},
+  pages = {081102},
+  issn = {0031-9007, 1079-7114},
+  doi = {10.1103/PhysRevLett.127.081102},
+  url = {http://arxiv.org/abs/2103.12274},
+  urldate = {2025-02-27},
+  abstract = {Third-generation (3G) gravitational-wave detectors will observe thousands of coalescing neutron star binaries with unprecedented fidelity. Extracting the highest precision science from these signals is expected to be challenging owing to both high signal-to-noise ratios and long-duration signals. We demonstrate that current Bayesian inference paradigms can be extended to the analysis of binary neutron star signals without breaking the computational bank. We construct reduced order models for \$\textbackslash sim 90\textbackslash,\textbackslash mathrm\{minute\}\$ long gravitational-wave signals, covering the observing band (\$5-2048\textbackslash,\textbackslash mathrm\{Hz\}\$), speeding up inference by a factor of \$\textbackslash sim 1.3\textbackslash times 10\textasciicircum 4\$ compared to the calculation times without reduced order models. The reduced order models incorporate key physics including the effects of tidal deformability, amplitude modulation due to the Earth's rotation, and spin-induced orbital precession. We show how reduced order modeling can accelerate inference on data containing multiple, overlapping gravitational-wave signals, and determine the speedup as a function of the number of overlapping signals. Thus, we conclude that Bayesian inference is computationally tractable for the long-lived, overlapping, high signal-to-noise-ratio events present in 3G observatories.},
+  keywords = {Astrophysics - High Energy Astrophysical Phenomena,Astrophysics - Instrumentation and Methods for Astrophysics,General Relativity and Quantum Cosmology},
+  file = {/home/jacopo/Zotero/storage/TYVI87AJ/Smith et al. - 2021 - Bayesian inference for gravitational waves from bi.pdf;/home/jacopo/Zotero/storage/6RM5HHLV/2103.html}
+}
+
 @article{speagleDYNESTYDynamicNested2020,
   title = {{{DYNESTY}}: A Dynamic Nested Sampling Package for Estimating {{Bayesian}} Posteriors and Evidences},
   shorttitle = {{{DYNESTY}}},
@@ -281,4 +513,70 @@
   keywords = {Astrophysics - Instrumentation and Methods for Astrophysics,methods: data analysis,methods: statistical,Statistics - Computation},
   annotation = {ADS Bibcode: 2020MNRAS.493.3132S},
   file = {/home/jacopo/Zotero/storage/FGFU7D67/Speagle - 2020 - DYNESTY a dynamic nested sampling package for est.pdf}
+}
+
+@article{tissinoCombiningEffectiveonebodyAccuracy2023,
+  title = {Combining Effective-One-Body Accuracy and Reduced-Order-Quadrature Speed for Binary Neutron Star Merger Parameter Estimation with Machine Learning},
+  author = {Tissino, Jacopo and Carullo, Gregorio and Breschi, Matteo and Gamba, Rossella and Schmidt, Stefano and Bernuzzi, Sebastiano},
+  date = {2023},
+  journaltitle = {Phys. Rev. D},
+  volume = {107},
+  number = {8},
+  eprint = {2210.15684},
+  eprinttype = {arXiv},
+  eprintclass = {gr-qc},
+  pages = {084037},
+  doi = {https://journals.aps.org/prd/abstract/10.1103/PhysRevD.107.084037},
+  url = {http://arxiv.org/abs/2210.15684},
+  urldate = {2022-11-04},
+  abstract = {We present mlgw-bns, a gravitational waveform surrogate that allows for a significant improvement in the generation speed of frequency-domain waveforms for binary neutron star mergers, at a negligible cost in accuracy. This improvement is achieved by training a machine-learning model on a dataset of waveforms generated with an accurate but comparatively costlier approximant: the state-of-the-art effective-one-body model TEOBResumSPA. When coupled to a reduced-order scheme, mlgw-bns can accelerate waveform generation up to a factor of \textasciitilde 35. By analyzing GW170817 in realistic parameter estimation settings with our scheme, we showcase an overall speedup against TEOBResumSPA greater than an order of magnitude. Our methodology will bear its largest impact by allowing routine usage of accurate effective-one-body models with next-generation detectors.},
+  keywords = {General Relativity and Quantum Cosmology},
+  file = {/home/jacopo/Zotero/storage/6F5XJJH2/Tissino et al. - 2022 - Combining effective-one-body accuracy and reduced-.pdf;/home/jacopo/Zotero/storage/QU2ZFHGX/2210.html}
+}
+
+@article{whittleCurvePeriodogramSmoothing1957,
+  title = {Curve and {{Periodogram Smoothing}}},
+  author = {Whittle, P.},
+  date = {1957-01-01},
+  journaltitle = {Journal of the Royal Statistical Society Series B: Statistical Methodology},
+  volume = {19},
+  number = {1},
+  pages = {38--47},
+  issn = {1369-7412, 1467-9868},
+  doi = {10.1111/j.2517-6161.1957.tb00242.x},
+  url = {https://academic.oup.com/jrsssb/article/19/1/38/7026758},
+  urldate = {2025-02-11},
+  abstract = {Summary             The difficulty in constructing smoothing formulae is to express quantitatively the type of smoothness one expects of the curve one is estimating. An argument is given in Sections 1 and 3 for formulating this “smoothness hypothesis” in terms of the properties of a population of curves of which the curve being estimated is a member. In equation (20) we obtain a solution for the matrix of optimum weighting coefficients in terms of certain “population moments” of the ordinates of the curve. Explicit formulae based on special assumptions are deduced in equations (34), (56)–(58). General information is gained on the way the optimum smoothing function and the variance of the smoothed estimate vary with the sample size and with the assumed degree of smoothness of the parent curve.},
+  langid = {english},
+  file = {/home/jacopo/Zotero/storage/JQY44Z36/Whittle - 1957 - Curve and Periodogram Smoothing.pdf}
+}
+
+@online{williamsImportanceNestedSampling2023,
+  title = {Importance Nested Sampling with Normalising Flows},
+  author = {Williams, Michael J. and Veitch, John and Messenger, Chris},
+  date = {2023-02-16},
+  eprint = {2302.08526},
+  eprinttype = {arXiv},
+  eprintclass = {astro-ph, physics:gr-qc},
+  doi = {10.48550/arXiv.2302.08526},
+  url = {http://arxiv.org/abs/2302.08526},
+  urldate = {2023-02-21},
+  abstract = {We present an improved version of the nested sampling algorithm nessai in which the core algorithm is modified to use importance weights. In the modified algorithm, samples are drawn from a mixture of normalising flows and the requirement for samples to be independently and identically distributed (i.i.d.) according to the prior is relaxed. Furthermore, it allows for samples to be added in any order, independently of a likelihood constraint, and for the evidence to be updated with batches of samples. We call the modified algorithm i-nessai. We first validate i-nessai using analytic likelihoods with known Bayesian evidences and show that the evidence estimates are unbiased in up to 32 dimensions. We compare i-nessai to standard nessai for the analytic likelihoods and the Rosenbrock likelihood, the results show that i-nessai is consistent with nessai whilst producing more precise evidence estimates. We then test i-nessai on 64 simulated gravitational-wave signals from binary black hole coalescence and show that it produces unbiased estimates of the parameters. We compare our results to those obtained using standard nessai and dynesty and find that i-nessai requires 2.64 and 12.96 times fewer likelihood evaluations to converge, respectively. We also test i-nessai of an 80-second simulated binary neutron star signal using a Reduced-Order-Quadrature (ROQ) basis and find that, on average, it converges in 33 minutes, whilst only requiring \$1.05\textbackslash times10\textasciicircum 6\$ likelihood evaluations compared to \$1.42\textbackslash times10\textasciicircum 6\$ for nessai and \$4.30\textbackslash times10\textasciicircum 7\$ for dynesty. These results demonstrate the i-nessai is consistent with nessai and dynesty whilst also being more efficient.},
+  pubstate = {prepublished},
+  keywords = {Astrophysics - High Energy Astrophysical Phenomena,Astrophysics - Instrumentation and Methods for Astrophysics,General Relativity and Quantum Cosmology},
+  file = {/home/jacopo/Zotero/storage/UTCGC9YD/Williams et al. - 2023 - Importance nested sampling with normalising flows.pdf;/home/jacopo/Zotero/storage/TVAPZSUH/2302.html}
+}
+
+@unpublished{zackayRelativeBinningFast2018,
+  title = {Relative {{Binning}} and {{Fast Likelihood Evaluation}} for {{Gravitational Wave Parameter Estimation}}},
+  author = {Zackay, Barak and Dai, Liang and Venumadhav, Tejaswi},
+  date = {2018-08-02},
+  eprint = {1806.08792},
+  eprinttype = {arXiv},
+  eprintclass = {astro-ph, physics:gr-qc},
+  url = {http://arxiv.org/abs/1806.08792},
+  urldate = {2021-09-14},
+  abstract = {We present a method to accelerate the evaluation of the likelihood in gravitational wave parameter estimation. Parameter estimation codes compute likelihoods of similar waveforms, whose phases and amplitudes differ smoothly with frequency. We exploit this by precomputing frequency-binned overlaps of the best-fit waveform with the data. We show how these summary data can be used to approximate the likelihood of any waveform that is sufficiently probable within the required accuracy. We demonstrate that \$\textbackslash simeq 60\$ bins suffice to accurately compute likelihoods for strain data at a sampling rate of \$4096\textbackslash,\$Hz and duration of \$T=2048\textbackslash,\$s around the binary neutron star merger GW170817. Relative binning speeds up parameter estimation for frequency domain waveform models by a factor of \$\textbackslash sim 10\textasciicircum 4\$ compared to naive matched filtering and \$\textbackslash sim 10\$ compared to reduced order quadrature.},
+  keywords = {Astrophysics - Instrumentation and Methods for Astrophysics,General Relativity and Quantum Cosmology,To read},
+  file = {/home/jacopo/Zotero/storage/V3JZZWST/Zackay et al_2018_Relative Binning and Fast Likelihood Evaluation for Gravitational Wave.pdf;/home/jacopo/Zotero/storage/64QK56C5/1806.html}
 }

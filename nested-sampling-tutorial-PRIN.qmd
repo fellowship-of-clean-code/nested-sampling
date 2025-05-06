@@ -1,0 +1,369 @@
+---
+format:
+    html:
+        code-fold: true
+        bibliography: nested-sampling.bib
+        execute:
+            debug: false
+        toc: true
+        self-contained: true
+        number-sections: true
+        number-depth: 3 
+    pdf:
+        execute:
+            echo: false
+        bibliography: nested-sampling.bib
+        number-sections: true
+        number-depth: 3
+---
+
+```{python}
+import matplotlib.pyplot as plt
+from pathlib import Path
+plt.rc('text', usetex=True)
+
+data_path = Path('.').resolve() / 'data'
+```
+
+# Nested Sampling tutorial
+
+## Motivation: exploring probability distributions
+
+In astrophysics, we are often interested in exploring probability distributions $p(\theta)$.
+This can be accomplished in several different ways, such as:
+
+- [Metropolis-Hastings Monte Carlo](https://chi-feng.github.io/mcmc-demo/app.html?algorithm=RandomWalkMH&target=multimodal), 
+- [Hamiltonian Monte Carlo](https://chi-feng.github.io/mcmc-demo/app.html?algorithm=HamiltonianMC&target=multimodal),
+- [Gibbs Sampling](https://chi-feng.github.io/mcmc-demo/app.html?algorithm=GibbsSampling&target=multimodal).
+
+These methods are all _invariant_ under scaling transformations of the distribution, $p(\theta) \to \alpha p(\theta)$ for some $\alpha \in \mathbb{R}^+$.
+
+This may be useful, since the distributions we are often working with may have an _a-priori_ unknown normalization. 
+
+When performing the analysis of data $d$ according to a model $M$ parameterized by some finite number of parameters $\theta$, we employ Bayes' theorem, which is derived by expressing the joint probability $\text{prob}(d, \theta | M)$ in two different ways: 
+
+$$ \text{prob}(d, \theta | M) = \mathcal{L}(d | \theta, M) \pi (\theta | M) = p(\theta | d, M) \mathcal{Z}(d | M)\,.
+$$
+
+The entries in this equation are: 
+
+- the _likelihood_ $\mathcal{L}$ of the data given the model and a specific choice of its parameters - it is a probability distribution over the data (i.e. $\int \mathcal{L}(d|\theta, M) \text{d}d = 1$), but we interpret it as a function of the parameters $\theta$ while the data are fixed;
+- the _prior_ $\pi$ - a representation of our beliefs about the model's parameters before seeing the data;
+- the _posterior_ $p$ for the model's parameters - a representation of our updated beliefs about them after seeing the data;
+- the _evidence_ $\mathcal{Z}$ for the model - a normalization constant for the posterior, or the likelihood for the data marginalized over all the model's parameters.
+
+Typically, it is cheap to evaluate the quantity $\mathcal{L}(d | \theta, M) \pi (\theta | M) \propto p(\theta | d, M)$ at any given point in parameter space.
+
+All the aforementioned methods can give us samples from the unnormalized density $\mathcal{L}(d | \theta, M) \pi (\theta | M)$, but it is in trickier to estimate the **evidence** $Z(d|M)$.
+
+This is what can be accomplished by [_nested sampling_](https://chi-feng.github.io/mcmc-demo/app.html?algorithm=RadFriends-NS&target=multimodal).
+
+## Nested sampling {#sec-nested-sampling}
+
+Nested sampling, introduced by Skilling in the early 2000s (@skillingNestedSampling2004, @skillingNestedSamplingGeneral2006), is an algorithm designed to compute the _evidence_ $\mathcal{Z}$ as well as the posterior distribution on the parameters. 
+
+The evidence is computed through the integral
+
+$$ \mathcal{Z}(d|M) = \int \mathcal{L}(d | \theta, M) \pi (\theta | M) \text{d}^n\theta \,.
+$$
+
+This integral is in $n$ dimensions (where $n$ is the dimensionality of the parameter space) and therefore difficult to work with. The idea in nested sampling is to rewrite it in terms of the auxiliary variable $X$, defined as the prior volume contained within a likelihood constraint $\mathcal{L} \geq L$:
+
+$$ X (L) = \int_{\mathcal{L}(d | \theta, M) \geq L} \pi (\theta | M) \text{d}^n\theta\,.
+$$
+
+Since the prior is a normalized probability distribution and the likelihood ranges from 0 to $L _{\text{max}}$, this variable will range from $X(0) = 1$ to $X(L _{\text{max}}) = 0$, and it will always be decreasing.[^1]
+We can define its inverse, $L(X)$, 
+and rewrite the likelihood integral through integration by parts: the evidence is the expectation value of the likelihood, therefore, starting from the definition of a Lebesgue integral:
+$$
+\mathcal{Z}(d|M) = \int_{0}^{L_\text{max}} X(L) \text{d}L 
+= X L |_{L=0}^{L=L_\text{max}} - \int_{X(L=0)}^{X(L=L_\text{max})} L(X)\text{d}X = \int_{0}^{1}L(X)\text{d}X\,.
+$$ {#eq-evidence-integral}
+
+For a detailed discussion of the mathematical details, also see @ashtonNestedSamplingPhysical2022, @siviaDataAnalysisBayesian2006.
+
+### Prior compression {#sec-prior-compression}
+
+Note that, by definition, $X$ is directly related to probability mass: the prior probability of an interval $[X_{0}, X_{1}]$, i.e. the prior mass which has likelihood values $L(X_{1}) < \mathcal{L} < L(X_{0})$, is 
+
+$$
+p([X_{0}, X_{1}]) = \int _{L(X_{0}) < \mathcal{L}(d|\theta, M) < L(X_{1})} \pi (\theta | M) \text{d}^{n} \theta = X_{1} - X_{0}\,,
+$$
+
+where we computed the integral on a likelihood "ring" by subtracting the inside volume from the outside one.
+This is useful to us, since it means that if we distribute points uniformly according to the prior their $X$ values will also be uniformly distributed in $[0, 1]$. 
+More formally, the probability we are assigning to $X$ is the _push-forward_ probability measure associated to the mapping from $\theta$ to $X$ defined by $X(\theta) = X(L(\theta))$.
+For a discussion on this, see [@ashtonNestedSamplingPhysical2022, box 2].
+
+If $k$ points are uniformly distributed in an interval $[0, X^*]$, then the largest of them will have a $X$ coordinate distributed as $X _\text{max} / X^* \equiv t \sim \text{beta}(k, 1) = k t^{k-1}$, where we defined the _compression ratio_ $t$: when we discard the lowest-likelihood point with $X _\text{max}$, we will have contracted the prior volume by a factor $t$. 
+
+::: {#nte-beta-distribution .callout-note collapse="true"}
+##### On the beta distribution
+
+Here is a simple argument for why $t$, the largest out of $k$ uniform random variates in $[0, 1]$, is distributed according to $t \sim k t^{k-1}$. 
+The statement can equivalently be framed in terms of the cumulative distribution: $p(t \leq T) = T^{k}$.
+
+We can think of our $k$ random variates as a point in the $k$-dimensional unit box $[0, 1]^{k}$, and since they are uniformly distributed there will be a one-to-one correspondence between volume within the box and probability mass.
+Then, the geometric meaning of the cumulative distribution is: what is the volume of the region corresponding to the event $t \leq T$, i.e. such that the maximum of the coordinates of our point is $T$?
+The answer is the box $[0, T]^{k}$, whose volume is $T^{k}$, thus proving our claim.
+
+In general, the $n$-th smallest out of $k$ uniform random variates in $[0, 1]$ is distributed according toa beta distribution, specifically $\text{beta}(k, n-k+1) \propto x^{n-1}(1-x)^{k-n}$; here we are looking at the $k$-th smallest (i.e. the largest).
+:::
+
+In terms of $\log t$, the distribution reads 
+$$
+\frac{\text{d}p}{\text{d}\log t} = t\frac{\text{d}p}{\text{d}t} = k t^{k} = k e^{k \log t}
+$$
+
+This distribution is shown in @fig-nested-sampling-volume-compression-distribution.
+
+```{python}
+#| label: fig-nested-sampling-volume-compression-distribution
+#| fig-cap: "Volume compression"
+
+from matplotlib.ticker import FixedLocator, FixedFormatter
+import numpy as np
+import matplotlib.pyplot as plt
+
+n = 1
+log_t = np.linspace(-3/n, 0)
+p_of_log_t = n * np.exp( n * log_t)
+
+plt.plot(log_t, p_of_log_t / n)
+_ = plt.xlabel('$\log t$')
+_ = plt.ylabel(r'$\mathrm{d}p / \mathrm{d} \log t$')
+
+plt.xlim(-3/n, 0)
+plt.ylim(0, n)
+
+plt.gca().xaxis.set_major_locator(FixedLocator([-3/n, -2/n, -1/n, 0]))
+plt.gca().xaxis.set_major_formatter(FixedFormatter([
+	'$-3/n$', 
+	'$-2/n$', 
+	'$-1/n$', 
+	'$0$'
+]))
+
+plt.gca().yaxis.set_major_locator(FixedLocator([0, n/4, n/2, 3*n/4, n]))
+plt.gca().yaxis.set_major_formatter(FixedFormatter([
+	'$0$', 
+	'$n/4$', 
+	'$n/2$', 
+	'$3n/4$', 
+	'$n$'
+]))
+```
+
+Its mean and standard deviation are: 
+$$
+\begin{aligned}
+\langle \log t \rangle &= \int_{-\infty}^{0} \log t \frac{\text{d}p}{\text{d}\log t} \text{d}\log t  \\
+&= \int_{-\infty}^{0} \frac{x}{k} k e^{x} \frac{ \text{d}x}{k}  \\ 
+&= \frac{1}{k} \int_{-\infty}^{0} x e^{x} \text{d}x \\
+&= - \frac{1}{k}
+\end{aligned}
+$$
+
+where $x = k \log t$, and
+$$
+\begin{aligned}
+\left\langle  (\log t)^{2}  \right\rangle - \frac{1}{k^{2}}
+&= \int_{-\infty}^{0} (\log t)^{2} \frac{\text{d}p}{\text{d}\log t} \text{d} \log t - \frac{1}{k^{2}} \\
+&= \int_{-\infty}^{0} \frac{x^{2}}{k^{2}} k e^{x} \frac{\text{d}x}{k} - \frac{1}{k^{2}}  \\
+&= \frac{1}{k^{2}} \int_{-\infty}^{0} x^{2} e^{x} \text{d}x - \frac{1}{k^{2}}  \\
+&= \frac{2-1}{k^{2}} = \frac{1}{k^{2}}\,.
+\end{aligned}
+$$
+
+Compactly, we can then write $\log t = (-1 \pm 1) / k$. 
+
+### Computing evidence and posterior
+
+If we sample $k$ points from the prior (with total volume $X_{0}$) and remove the one with the worst likelihood, the remaining prior volume will be $X_{1} = t_{1}X_{0}$, where $\log t_{1}$ has an expectation value of $-1 /k$. This will be true at every iteration, so [@skillingNestedSamplingGeneral2006, section 5]
+$$
+\log X_{i} = \sum_{j\leq i} \log t_{j} \approx -\frac{i}{k} \pm \frac{\sqrt{ i }}{k}
+$$
+
+The prior is compressed exponentially, which is desirable since the typical set for the posterior is often several orders of magnitude smaller than the prior.
+
+```{python}
+#| label: fig-nested-sampling-volume-compression-iteration
+#| fig-cap: "Volume compression by iteration. The number of live points is denoted here as $n_{\\mathrm{live}} = k$. Note how the horizontal slices are thinner when we have more live points: increasing them will decrease the uncertainty on the prior compression obtained at a fixed iteration number. After reaching a logarithmic volume compression of $- \\log X = 4$ the runs are truncated, and the remaining points are shown: these are distributed uniformly and not geometrically in $X$, therefore they taper off in this logarithmic plot."
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+rng = np.random.default_rng(seed=1)
+
+n_iterations = 80
+logX_min = -4
+
+n_live_numbers = [100, 50]
+colors = ['grey', 'black']
+
+for n_live, color in zip(n_live_numbers, colors):
+
+	results = [[] for _ in range(n_iterations)]
+
+	for i in range(n_iterations):
+		points = rng.uniform(size=n_live)
+		points = np.sort(points)
+		logX = 0
+		while logX > logX_min:
+			results[i].append(logX)
+			logX = np.log(points[-1])
+			points[-1] = rng.uniform(0, np.exp(logX))
+			points = np.sort(points)
+		results[i].extend(np.log(points[::-1]))
+
+	min_i = min(len(arr) for arr in results)
+
+	for i in range(n_iterations):
+		if i == 0:
+			label = '$n_{\mathrm{live}} =$' + f' {n_live}'
+		else:
+			label = None
+		plt.plot(
+			results[i], 
+			np.arange(len(results[i])), 
+			c=color, 
+			alpha=.2, 
+			label=label)
+
+plt.legend()
+plt.axvline(logX_min, ls='--', c='black', lw=1)
+plt.xlim(0, logX_min-6)
+plt.xlabel(r'$\log X$: prior compression')
+plt.ylabel('Iteration number')
+plt.show()
+```
+
+This allows us to construct a procedure to evaluate the integral in @eq-evidence-integral, as long as we are able to do the following:
+
+1. sample uniformly $k$ points from the prior
+2. find the lowest-likelihood point $\theta_{1}$ and discard it: now the prior volume is approximately $X_{1} = e^{-1/k}$; let us denote its likelihood as $L_{1}$
+3. sample a new point $\theta_{2}$ uniformly from the prior, constrained to $L_{2} = L(\theta_{2}) > L_{1}$
+4. repeat from point 2.
+
+We are constructing a sequence of points $\theta_{i}$ with corresponding likelihoods $L_{i}$ and approximate associated interior prior volumes $X_{i} \approx e^{-i/k}$. 
+At this stage, we still need to discuss how step 3 is performed, as well as when the iteration should stop - for now, suppose that happens at some stage $n_\text{iter}$.
+
+For the evidence, we can simply use a trapezoidal integration rule: 
+$$
+\mathcal{Z}(d|M) \approx  \sum_{i=1}^{n_\text{iter}} w_{i} L_{i} = \sum_{i=1}^{n_\text{iter}} \frac{X_{i+1} - X_{i-1}}{2} L_{i} 
+$$
+
+It can be shown that this sum converges to the correct value in the $n_\text{iter} \to \infty$ and $n _\text{live} \to \infty$ limit.
+
+These weights can also be used to estimate the posterior as follows: take the points $\theta_{i}$ and assign to each of them a weight 
+$$
+p_{i} = \frac{w_{i} L_{i}}{Z}\,.
+$$
+It is readily seen that these weights add to 1, and heuristically they are computed as one might expect, by multiplying the prior mass and likelihood value for each of the regions we have subdivided the prior volume into.
+
+Often one is be interested in a set of equally-weighted samples: these can be obtained, for example, through density estimation methods.
+
+## Exercise
+
+Suppose we have a set of data points $(x_{i}, y_{i})$ with uncertainties $\sigma_{y}$ on the $y$ values.
+
+We will compare two simple _nested_ models, namely a parabolic one with $y = f(x; a, b, c) = a x^{2}+bx+c$ and a linear one with $y = f(x; b, c) = bx+c$. 
+Model comparison can also be performed for non-nested models, but the nested case has some nice properties we will showcase later.
+
+Let us generate the data and plot it: it will come from the parabolic model.
+
+```{python}
+#| label: fig-parameter-estimation-parabolic-data
+#| fig-cap: Toy model, with data coming from a parabolic function and Gaussian errors.
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+kwargs = {
+	'fmt': 'o',
+	'capsize': 5,
+	'alpha': .8,
+}
+
+rng = np.random.default_rng(seed=1)
+
+n_points = 20
+
+x_i = np.linspace(-5, 5, num=n_points)
+sigma_y = 1
+true_a = -0.05
+true_b = 0.5
+true_c = 3
+
+def model(x, a, b, c):
+	return a*x**2 + b*x + c
+
+y_i = model(x_i, true_a, true_b, true_c) + rng.normal(scale=sigma_y, size=n_points)
+
+_ = plt.errorbar(x_i, y_i, sigma_y, **kwargs)
+_ = plt.xlabel('$x$')
+_ = plt.ylabel('$y$')
+```
+
+We can then analyze this data, using a Gaussian likelihood and setting (somewhat arbitrarily) uniform priors for the parameters $a$, $b$ and $c$ in the range $[-10, 10]$: 
+
+- $\pi(a, b, c) = 1 / 20^{3}$ in that range and 0 otherwise for the parabola;
+- $\pi(b, c) = 1 / 20^{2}$ in that range and 0 otherwise for the parabola;
+
+The log-likelihood will be 
+$$
+\log \mathcal{L}(\text{data} | \theta, \text{model}) = - \frac{1}{2}  \sum_{i=1}^{n} \frac{(y_{i} - f(x_{i}; \theta))^{2}}{\sigma_{y}^{2}} - \frac{n}{2} \log (2 \pi \sigma_{y}^{2}).
+$$
+
+Here is a python implementation 
+
+```{python}
+lnorm = -0.5 * (
+	np.log(2 * np.pi) * n_points +
+    np.log(sigma_y**2 * n_points))
+
+def loglike(theta):
+	y = model(x_i, *theta)
+	return - 0.5 * ((y-y_i)**2).sum() / sigma_y**2 + lnorm
+
+def loglike_linear(theta):
+	y = model(x_i, 0, *theta)
+	return - 0.5 * ((y-y_i)**2).sum() / sigma_y**2 + lnorm
+
+def prior_transform(u):
+	# flat prior in [-10, 10] for all parameters
+	return u*20. - 10.
+
+```
+
+### Problem statement
+
+1. Perform Bayesian inference for the two models with your favourite variant of Nested Sampling, which will yield estimates for the posterior distributions of the parameters as well as the evidences. Options include:
+
+    1. [dynesty](https://dynesty.readthedocs.io/en/v2.1.5/)
+    2. [ultranest](https://johannesbuchner.github.io/UltraNest/index.html)
+    3. [PyMultiNest](https://johannesbuchner.github.io/PyMultiNest/pymultinest.html)
+    4. [bilby](https://johannesbuchner.github.io/PyMultiNest/pymultinest.html)
+    5. [nessai](https://github.com/mj-will/nessai)
+
+2. Compute the Bayes Factor: which model is preferred over the other?
+
+    $$
+    \log \text{BF}^{\text{parabola}}_\text{line} = \log Z_\text{parabola} - \log Z_\text{line}\,,
+    $$
+
+3. The models we are considering are nested, so we have a comparison point for our Bayes Factor: the Savage-Dickey density ratio. Show that this estimate is consistent with the Bayes Factor computed with Nested Sampling.
+
+    $$
+    \text{BF}^{\text{parabola}}_\text{line} = \frac{p(a=0 | d, M_\text{parabola})}{\pi(a=0|M_\text{parabola})}\,.
+    $$
+
+
+## References {.unnumbered}
+
+::: {#refs}
+:::
+
+[^1]: It will not necessarily be _strictly_ decreasing, but that is not a conceptual issue. One can introduce jitter in the likelihood, varying it at each point by an inconsequential amount, in order to ensure that the decreasing condition is verified precisely.
+

@@ -1,6 +1,7 @@
 # Nested sampling seminar
 
-See the notes at [this link](http://htmlpreview.github.io/?https://github.com/fellowship-of-clean-code/nested-sampling/blob/main/nested-sampling-seminar.html).
+See the notes for [the original talk](http://htmlpreview.github.io/?https://github.com/fellowship-of-clean-code/nested-sampling/blob/main/nested-sampling-seminar.html),
+and the ones for [the tutorial at the PRIN meeting].
 
 To build:
 

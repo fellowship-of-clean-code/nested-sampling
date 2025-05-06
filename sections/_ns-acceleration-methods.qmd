@@ -1,5 +1,11 @@
 ## Nested sampling acceleration techniques
 
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+from thesis_scripts import *
+```
+
 The time complexity for nested sampling can be estimated as
 
 $$
@@ -35,7 +41,7 @@ A direct way to speed up any likelihood-based approach is to accelerate the eval
 As discussed in @sec-ns-sampling-options, there are many different ways to solve the likelihood-restricted sampling problem. 
 While there is no panacea here, trying different parameters for the proposal method or switching to a different one altogether is a useful strategy when looking for acceleration.
 
-### Prior deformation
+### Prior deformation {#sec-prior-deformation}
 
 The compression $H$ is a significant determinant of the sampling cost. 
 Often, we want to use wide, uninformative priors, which significantly increases the computational cost, even though it is known that the posterior is contained within a relatively small region within them.
@@ -47,3 +53,242 @@ $$
 holds, the evidences, as well as the posteriors, will be the same.
 As long as we have some approximate knowledge about the shape of the posterior, then, we can  apply a carefully-chosen shift to the prior which "zooms in" on the region of interest, reducing the compression required.
 If the error in $\log\mathcal{Z}$ is kept constant, reducing $H$ results in a quadratic acceleration of the inference.
+
+#### Convenient parameterizations
+
+We are implementing a way to use such prior space deformations in order to accelerate inference.
+
+This is done by defining a bijection $\varphi: [0, 1]^{d} \to [0, 1]^{d}$ which expands the regions of interest, while compressing the ones where we know little posterior mass will be contained.
+
+Then, if the prior transform associated to $\pi(\theta)$ is denoted as $g\colon [0, 1]^{d} \to \Omega$, we write the modified prior transform associated with $\tilde{\pi}$ as 
+$$
+\begin{aligned}
+\tilde{g}\colon [0, 1]^{d} &\to \Omega \\
+\tilde{g}(u) &= g(\varphi (u)) 
+\end{aligned}
+$$
+
+We then need to determine the effect this has on the prior density, i.e. the ratio $w = \pi(\theta)/ \tilde{\pi}(\theta)$ (whose logarithm is denoted as `aux_logweight` in the code), and correct the likelihood accordingly.
+
+This _pushforward_ density will be given, in terms of the Jacobian of the transformation $\varphi$ expressed at the point $u = g^{-1}(\theta)$ 
+$$
+\tilde{\pi}(\theta) = \pi(\theta) |\det J_{\varphi}(g^{-1}(\theta))|^{-1}
+$$
+
+::: {#wrn-title .callout-warning collapse="true"}
+##### Unproven
+
+I'm quite confident it works like this but I haven't proven it formally - probably there is some function composition gymnastics to do.
+:::
+
+therefore the weight as a function of $u$ is given by 
+$$
+w(u) = |\det J_{\varphi}(u)|.
+$$
+We can then compute the new log-likelihood as 
+$$
+\log\mathcal{\tilde{L}} (u) = \log \mathcal{L}(g(\varphi(u))) + \log w(u).
+$$
+
+Let us establish some intuition: in the trivial case where $\varphi$ is the identity, its Jacobian is identically equal to one and $\log w = 0$ everywhere. 
+If, on the other hand, the transformation does indeed deform the box, there will be regions with $\log w > 0$ and $\log w < 0$. 
+
+The second case, $\log w < 0$, means that $\tilde{\pi} > \pi$, that is, we are assigning more probability to this region than the regular prior would. 
+
+##### Deforming the marginal distributions
+
+A simple but already quite useful case is the one where the function $\varphi$ is factored, such that we have a different $\varphi_{i}$ for each coordinate $u_{i}$.
+
+The nice thing here is that we can compute this factored $\varphi$ from posterior samples obtained in previous runs: let us denote those as $U_{j}$. Heuristically, we might expect $\varphi$ to somewhat look like the cumulative density for the samples $U_{j}$.
+
+We proceed as follows:
+
+- perform a KDE in each dimension
+
+
+
+```{python}
+#| label: fig-prior-guess-vary-original-fraction
+#| fig-cap: "Prior deformation by "
+
+from scipy.interpolate import PchipInterpolator, make_interp_spline
+from scipy.integrate import trapezoid
+from getdist import MCSamples
+from contextlib import redirect_stdout
+import io
+
+
+def conservative_prior_guess(all_x, all_p, single_dim_fraction):
+    """ Given a function p:[0, 1] -> R+, 
+    represented by some samples (`all_p`) corresponding
+    to the points `all_x`, return another normalized function
+    which is the sum of p and a constant, weighed by `single_dim_fraction`
+    and `(1-single_dim_fraction)` respectively.
+    """
+    
+    integral = trapezoid(all_p, x=all_x)
+    
+    return all_p * single_dim_fraction + np.ones_like(all_p) * (1 - single_dim_fraction) * integral
+
+def get_aux_splines(upoints, uweights, volume_contribution=0.5, beta=1.):
+    """ Compute spline representations of the auxiliary transforms.
+    
+    upoints: shape (n_points, dim)
+    uweights: shape (n_points,)
+    volume_contribution: fraction of total prior mass which will 
+        be taken up by the "guess" distribution represented by upoints
+        (default: 0.5)
+    beta: temperature for the prior guess (default: 1)
+    
+    """
+
+    
+    n_points, dim = upoints.shape
+    assert uweights.shape == (n_points, )
+    single_dim_fraction = volume_contribution**(1/dim)
+    
+    f = io.StringIO()
+
+    with redirect_stdout(f):
+        mcsamples = MCSamples(
+            samples=upoints, 
+            weights=uweights, 
+            names=[str(i) for i in range(upoints.shape[1])], 
+            ranges={str(i):[0, 1] for i in range(upoints.shape[1])}
+        )
+    
+    densities, inverse_cumulatives = [], []
+    
+    for i in range(dim):
+        with redirect_stdout(f):
+            density_interior = mcsamples.get1DDensity(str(i))
+        
+        interior_x = density_interior.x
+        
+        all_x = np.sort(np.unique(np.concatenate((
+            np.linspace(0, 1, num=1024),
+            interior_x
+        ))))
+        
+        all_p = np.maximum(density_interior(all_x), 0)
+        
+        all_p_thresholded = conservative_prior_guess(all_x, all_p**beta, single_dim_fraction)
+        
+        interpolator = PchipInterpolator(all_x, all_p_thresholded)
+        cumulative = interpolator.antiderivative()
+        integral = cumulative(1) - cumulative(0)
+        cumulative_points = cumulative(all_x) / integral
+        
+        unique_cumulative, unique_idx = np.unique(cumulative_points, return_index=True)
+        
+        inverse_cumulative = make_interp_spline(unique_cumulative, all_x[unique_idx], k=1)
+        inverse_cumulatives.append(inverse_cumulative)
+
+        cumulative = make_interp_spline(all_x, cumulative_points, k=1)
+        densities.append(cumulative.derivative())
+
+    return densities, inverse_cumulatives
+
+rng = np.random.default_rng()
+
+N0 = 5000
+upoints = np.concatenate(
+    [
+        rng.normal(loc=0., scale=3e-2, size=N0),
+        rng.normal(loc=0.15, scale=1e-2, size=N0),
+        rng.normal(loc=0.3, scale=2e-2, size=N0)
+    ]
+)
+upoints = upoints[upoints>0]
+upoints = upoints[upoints<1]
+upoints = upoints.reshape((-1, 1))
+
+N = upoints.shape[0]
+uweights = np.ones(N)/N
+
+
+x = np.linspace(0, 1, 10000)
+
+fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, gridspec_kw={'hspace': 0})
+
+cmap = plt.get_cmap('cividis')
+unif_points = rng.uniform(low=0, high=1, size=100000)
+
+axins = axs[0].inset_axes(
+    [0.5, 0.3, 0.45, 0.65],
+    xlim=(0.3, 0.4), ylim=(0, 2)
+)
+axs[0].indicate_inset_zoom(axins, edgecolor='black')
+
+for volume_contribution in [0.1, 0.25, 0.5, 0.75, 0.9]:
+    interps, inv_cumulatives = get_aux_splines(upoints, uweights, volume_contribution=volume_contribution, beta=1)
+    for ax in [axins, axs[0]]:
+        ax.plot(x, interps[0](x), c=cmap(volume_contribution))
+        ax.hist(inv_cumulatives[0](unif_points), bins=200, histtype='step', density=True, color=cmap(volume_contribution))
+    axs[1].plot(inv_cumulatives[0](x), x, label=f'guess fraction: {volume_contribution}', c=cmap(volume_contribution))
+
+axs[1].set_xlim(0, 1)
+axs[1].set_ylim(0, 1)
+labels = [item.get_text() for item in axs[0].get_yticklabels()]
+labels[0] = ''
+axs[0].set_yticklabels(labels)
+
+axs[1].legend()
+
+axs[1].set_xlabel('$u$ coordinate')
+axs[1].set_ylabel('$v$ coordinate, cumulative distribution')
+_ = axs[0].set_ylabel('auxiliary prior density')
+```
+
+```{python}
+x = np.linspace(0, 1, 10000)
+
+fig, axs = plt.subplots(nrows=2, ncols=1, sharex=True, gridspec_kw={'hspace': 0})
+
+cmap = plt.get_cmap('cividis')
+unif_points = rng.uniform(low=0, high=1, size=100000)
+
+axins = axs[0].inset_axes(
+    [0.5, 0.3, 0.45, 0.65],
+    xlim=(0.3, 0.4), ylim=(0, 2)
+)
+axs[0].indicate_inset_zoom(axins, edgecolor='black')
+
+for beta in [0.2, 0.5, 1., 2., 5]:
+    interps, inv_cumulatives = get_aux_splines(upoints, uweights, volume_contribution=0.5, beta=beta)
+    color = cmap(np.log10(beta)/2 + .5)
+    for ax in [axins, axs[0]]:
+        ax.plot(x, interps[0](x), c=color)
+        ax.hist(inv_cumulatives[0](unif_points), bins=200, histtype='step', density=True, color=color)
+    axs[1].plot(inv_cumulatives[0](x), x, label=f'beta: {beta}', c=color)
+
+axs[1].set_xlim(0, 1)
+axs[1].set_ylim(0, 1)
+
+labels = [item.get_text() for item in axs[0].get_yticklabels()]
+labels[0] = ''
+axs[0].set_yticklabels(labels)
+
+axs[1].legend()
+
+axs[1].set_xlabel('$u$ coordinate')
+axs[1].set_ylabel('$v$ coordinate, cumulative distribution')
+_ = axs[0].set_ylabel('auxiliary prior density')
+
+```
+
+
+##### The "sheet-twisting" map
+
+In some cases of relevance to me (such as starting from a Fisher forecast), we can work based on a multivariate Gaussian $\mathcal{N}(\mu, C)$ as opposed to samples.
+Suppose we can compute the equivalent $\mu_{u}$ and $C_{u}$ expressed in $u$-space (assuming that the Gaussian's scale is small enough that it stays Gaussian even after the coordinate transformation).
+
+I would like to define a transformation $\varphi$ with the following properties:
+
+- $\varphi$ is a bijection between $[0, 1]^{d}$ and itself;
+- $\varphi(\mu_{u}) = \mu_{u}$;
+- the Hessian $H_{\varphi}$, computed at $\mu_{u}$, is equal to $C_{u}^{-1}$;
+- $\varphi$ is "as smooth as possible"
+- $\varphi$ has its maximum at $\mu_{u}$ an decreases monotonically when getting further from it
+- $\varphi$ is always positive, and maybe we also want to require it never drops below some minimum value.
+
