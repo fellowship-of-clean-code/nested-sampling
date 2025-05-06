@@ -3254,7 +3254,9 @@ window.Quarto = {
   </ul></li>
   <li><a href="#exercise" id="toc-exercise" class="nav-link" data-scroll-target="#exercise"><span class="header-section-number">3</span> Exercise</a>
   <ul class="collapse">
-  <li><a href="#problem-statement" id="toc-problem-statement" class="nav-link" data-scroll-target="#problem-statement"><span class="header-section-number">3.1</span> Problem statement</a></li>
+  <li><a href="#inference" id="toc-inference" class="nav-link" data-scroll-target="#inference"><span class="header-section-number">3.1</span> Inference</a></li>
+  <li><a href="#bayes-factor" id="toc-bayes-factor" class="nav-link" data-scroll-target="#bayes-factor"><span class="header-section-number">3.2</span> Bayes Factor</a></li>
+  <li><a href="#savage-dickey-density-ratio" id="toc-savage-dickey-density-ratio" class="nav-link" data-scroll-target="#savage-dickey-density-ratio"><span class="header-section-number">3.3</span> Savage-Dickey Density Ratio</a></li>
   </ul></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
@@ -3281,7 +3283,7 @@ window.Quarto = {
 </header>
 
 
-<div id="43649056" class="cell" data-execution_count="1">
+<div id="aa6c8309" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
@@ -3570,8 +3572,8 @@ Figure 3: Toy model, with data coming from a parabolic function and Gaussian er
 <p>The log-likelihood will be <span class="math display">\[
 \log \mathcal{L}(\text{data} | \theta, \text{model}) = - \frac{1}{2}  \sum_{i=1}^{n} \frac{(y_{i} - f(x_{i}; \theta))^{2}}{\sigma_{y}^{2}} - \frac{n}{2} \log (2 \pi \sigma_{y}^{2}).
 \]</span></p>
-<p>Here is a python implementation</p>
-<div id="c6c67953" class="cell" data-execution_count="5">
+<p>Here is a reference python implementation of the likelihoods and prior transform:</p>
+<div id="7e08bd9e" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>lnorm <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> (</span>
@@ -3591,28 +3593,31 @@ Figure 3: Toy model, with data coming from a parabolic function and Gaussian er
 <span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> u<span class="op">*</span><span class="fl">20.</span> <span class="op">-</span> <span class="fl">10.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<section id="problem-statement" class="level3" data-number="3.1">
-<h3 data-number="3.1" class="anchored" data-anchor-id="problem-statement"><span class="header-section-number">3.1</span> Problem statement</h3>
-<ol type="1">
-<li><p>Perform Bayesian inference for the two models with your favourite variant of Nested Sampling, which will yield estimates for the posterior distributions of the parameters as well as the evidences. Options include:</p>
+<section id="inference" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="inference"><span class="header-section-number">3.1</span> Inference</h3>
+<p>Perform Bayesian inference for the two models with your favourite variant of Nested Sampling, which will yield estimates for the posterior distributions of the parameters as well as the evidences. Options include:</p>
 <ol type="1">
 <li><a href="https://dynesty.readthedocs.io/en/v2.1.5/">dynesty</a></li>
 <li><a href="https://johannesbuchner.github.io/UltraNest/index.html">ultranest</a></li>
 <li><a href="https://johannesbuchner.github.io/PyMultiNest/pymultinest.html">PyMultiNest</a></li>
 <li><a href="https://johannesbuchner.github.io/PyMultiNest/pymultinest.html">bilby</a></li>
-<li></li>
-</ol></li>
-<li><p>Compute the Bayes Factor: which model is preferred over the other?</p></li>
+<li><a href="https://github.com/mj-will/nessai">nessai</a></li>
+<li>…</li>
 </ol>
+</section>
+<section id="bayes-factor" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="bayes-factor"><span class="header-section-number">3.2</span> Bayes Factor</h3>
+<p>Compute the Bayes Factor: which model is preferred over the other?</p>
 <p><span class="math display">\[
 \log \text{BF}^{\text{parabola}}_\text{line} = \log Z_\text{parabola} - \log Z_\text{line}\,,
 \]</span></p>
-<ol start="3" type="1">
-<li><p>The models we are considering are nested, so we have a comparison point for our Bayes Factor: the Savage-Dickey density ratio. Show that this estimate is consistent with the Bayes Factor computed with Nested Sampling.</p>
-<p><span class="math display">\[
+</section>
+<section id="savage-dickey-density-ratio" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="savage-dickey-density-ratio"><span class="header-section-number">3.3</span> Savage-Dickey Density Ratio</h3>
+<p>The models we are considering are nested, so we have a comparison point for our Bayes Factor: the Savage-Dickey density ratio. Show that this estimate is consistent with the Bayes Factor computed with Nested Sampling.</p>
+<pre><code>$$
 \text{BF}^{\text{parabola}}_\text{line} = \frac{p(a=0 | d, M_\text{parabola})}{\pi(a=0|M_\text{parabola})}\,.
-\]</span></p></li>
-</ol>
+$$</code></pre>
 </section>
 </section>
 <section id="references" class="level2 unnumbered">
