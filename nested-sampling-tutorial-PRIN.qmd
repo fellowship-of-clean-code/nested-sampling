@@ -350,19 +350,19 @@ Perform Bayesian inference for the two models with your favourite variant of Nes
 
 ### Bayes Factor
 
-Compute the Bayes Factor: which model is preferred over the other?
+Compute the Bayes Factor: which model is preferred over the other? It is defined as follows:
 
 $$
-\log \text{BF}^{\text{parabola}}_\text{line} = \log Z_\text{parabola} - \log Z_\text{line}\,,
+\log \text{BF}^{\text{parabola}}_\text{line} = \log Z_\text{parabola} - \log Z_\text{line}\,.
 $$
 
 ### Savage-Dickey Density Ratio
 
-The models we are considering are nested, so we have a comparison point for our Bayes Factor: the Savage-Dickey density ratio. Show that this estimate is consistent with the Bayes Factor computed with Nested Sampling.
+The models we are considering are nested, so we have a comparison point for our Bayes Factor: the Savage-Dickey density ratio. Show that this estimate is consistent with the Bayes Factor computed with Nested Sampling. It is computed as follows
 
-    $$
-    \text{BF}^{\text{parabola}}_\text{line} = \frac{p(a=0 | d, M_\text{parabola})}{\pi(a=0|M_\text{parabola})}\,.
-    $$
+$$
+\text{BF}^{\text{parabola}}_\text{line} = \frac{p(a=0 | d, M_\text{parabola})}{\pi(a=0|M_\text{parabola})}\,.
+$$
 
 
 ## References {.unnumbered}
