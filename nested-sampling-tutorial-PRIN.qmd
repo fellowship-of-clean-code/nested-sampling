@@ -316,7 +316,7 @@ $$
 \log \mathcal{L}(\text{data} | \theta, \text{model}) = - \frac{1}{2}  \sum_{i=1}^{n} \frac{(y_{i} - f(x_{i}; \theta))^{2}}{\sigma_{y}^{2}} - \frac{n}{2} \log (2 \pi \sigma_{y}^{2}).
 $$
 
-Here is a python implementation 
+Here is a reference python implementation of the likelihoods and prior transform:
 
 ```{python}
 lnorm = -0.5 * (
@@ -337,23 +337,28 @@ def prior_transform(u):
 
 ```
 
-### Problem statement
+### Inference
 
-1. Perform Bayesian inference for the two models with your favourite variant of Nested Sampling, which will yield estimates for the posterior distributions of the parameters as well as the evidences. Options include:
+Perform Bayesian inference for the two models with your favourite variant of Nested Sampling, which will yield estimates for the posterior distributions of the parameters as well as the evidences. Options include:
 
-    1. [dynesty](https://dynesty.readthedocs.io/en/v2.1.5/)
-    2. [ultranest](https://johannesbuchner.github.io/UltraNest/index.html)
-    3. [PyMultiNest](https://johannesbuchner.github.io/PyMultiNest/pymultinest.html)
-    4. [bilby](https://johannesbuchner.github.io/PyMultiNest/pymultinest.html)
-    5. [nessai](https://github.com/mj-will/nessai)
+1. [dynesty](https://dynesty.readthedocs.io/en/v2.1.5/)
+2. [ultranest](https://johannesbuchner.github.io/UltraNest/index.html)
+3. [PyMultiNest](https://johannesbuchner.github.io/PyMultiNest/pymultinest.html)
+4. [bilby](https://johannesbuchner.github.io/PyMultiNest/pymultinest.html)
+5. [nessai](https://github.com/mj-will/nessai)
+6. ...
 
-2. Compute the Bayes Factor: which model is preferred over the other?
+### Bayes Factor
 
-    $$
-    \log \text{BF}^{\text{parabola}}_\text{line} = \log Z_\text{parabola} - \log Z_\text{line}\,,
-    $$
+Compute the Bayes Factor: which model is preferred over the other?
 
-3. The models we are considering are nested, so we have a comparison point for our Bayes Factor: the Savage-Dickey density ratio. Show that this estimate is consistent with the Bayes Factor computed with Nested Sampling.
+$$
+\log \text{BF}^{\text{parabola}}_\text{line} = \log Z_\text{parabola} - \log Z_\text{line}\,,
+$$
+
+### Savage-Dickey Density Ratio
+
+The models we are considering are nested, so we have a comparison point for our Bayes Factor: the Savage-Dickey density ratio. Show that this estimate is consistent with the Bayes Factor computed with Nested Sampling.
 
     $$
     \text{BF}^{\text{parabola}}_\text{line} = \frac{p(a=0 | d, M_\text{parabola})}{\pi(a=0|M_\text{parabola})}\,.
