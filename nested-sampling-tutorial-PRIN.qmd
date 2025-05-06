@@ -358,7 +358,7 @@ $$
 
 ### Savage-Dickey Density Ratio
 
-The models we are considering are nested, so we have a comparison point for our Bayes Factor: the Savage-Dickey density ratio. Show that this estimate is consistent with the Bayes Factor computed with Nested Sampling. It is computed as follows
+The models we are considering are nested, so we have a comparison point for our Bayes Factor: the Savage-Dickey density ratio. Show that this estimate is consistent with the Bayes Factor computed with Nested Sampling. It is computed as follows:
 
 $$
 \text{BF}^{\text{parabola}}_\text{line} = \frac{p(a=0 | d, M_\text{parabola})}{\pi(a=0|M_\text{parabola})}\,.
